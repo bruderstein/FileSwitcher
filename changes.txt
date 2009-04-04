@@ -1,0 +1,19 @@
+File Switcher 
+
+0.2
+
+Features:
++ Added option for searching only the start of the filename
++ Added option for case sensitivity
++ Added option for including the path in the search
++ Remember what was typed for each buffer (doesn't work in ANSI version)
++ Remember window position between sessions
+
+Bugs:
++ Fixed issue with case sensitivity
++ Fixed window position resetting each time dialog was shown
+
+
+0.1
+
+Initial release.

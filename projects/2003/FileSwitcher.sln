@@ -1,0 +1,27 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FileSwitcher", "FileSwitcher.vcproj", "{D5B3DD49-16EC-4F10-A10B-0E2440A10403}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		ANSI-Debug = ANSI-Debug
+		ANSI-Release = ANSI-Release
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{D5B3DD49-16EC-4F10-A10B-0E2440A10403}.ANSI-Debug.ActiveCfg = ANSI-Debug|Win32
+		{D5B3DD49-16EC-4F10-A10B-0E2440A10403}.ANSI-Debug.Build.0 = ANSI-Debug|Win32
+		{D5B3DD49-16EC-4F10-A10B-0E2440A10403}.ANSI-Release.ActiveCfg = ANSI-Release|Win32
+		{D5B3DD49-16EC-4F10-A10B-0E2440A10403}.ANSI-Release.Build.0 = ANSI-Release|Win32
+		{D5B3DD49-16EC-4F10-A10B-0E2440A10403}.Debug.ActiveCfg = Debug|Win32
+		{D5B3DD49-16EC-4F10-A10B-0E2440A10403}.Debug.Build.0 = Debug|Win32
+		{D5B3DD49-16EC-4F10-A10B-0E2440A10403}.Release.ActiveCfg = Release|Win32
+		{D5B3DD49-16EC-4F10-A10B-0E2440A10403}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal
