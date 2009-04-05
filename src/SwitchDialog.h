@@ -71,7 +71,8 @@ private:
 	RECT _cancelButtonRect;
 	RECT _listboxRect;
 	RECT _editboxRect;
-	
+	BOOL _overrideCtrlTab;
+
 	int _dialogWidth, _dialogHeight;
 	int _dialogX, _dialogY;
 
@@ -81,19 +82,20 @@ private:
 
 	struct options_t *_options;
 	std::map<int, TCHAR *> *_typedForFile;
-
+	std::map<int, int> _bufferToIndex;
 
 	/* Private methods */
     void cleanup(void);
 	void searchFiles(TCHAR* searchString);
 	void addListEntry(EditFile &editFile, bool selected);
 	void clearList(void);
-	void moveSelectionUp(void);
-	void moveSelectionDown(void);
+	void moveSelectionUp(BOOL wrap);
+	void moveSelectionDown(BOOL wrap);
 	void moveSelectionTop(void);
 	void moveSelectionBottom(void);
 	void updateWindowPosition(void);
 	void refreshSearchFlags(void);
+	void switchToSelectedBuffer(void);
 
 	/* Constants */
 	static const int SEARCH_STRING_BUFFER_MAX = 255;

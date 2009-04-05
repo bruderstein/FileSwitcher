@@ -7,7 +7,7 @@ EditFile::EditFile(void)
 	_dataSet = false;
 }
 
-EditFile::EditFile(int index, CONST TCHAR* filename, int searchFlags)
+EditFile::EditFile(int index, CONST TCHAR* filename, int searchFlags, int bufferID)
 {
 	// Copy the full filename
 	int filenameLength = _tcslen(filename);
@@ -60,6 +60,7 @@ EditFile::EditFile(int index, CONST TCHAR* filename, int searchFlags)
 
 	_dataSet = true;
 	_index = index;
+	_bufferID = bufferID;
 }
 
 EditFile::~EditFile(void)
@@ -99,3 +100,7 @@ int EditFile::getIndex()
 	return _index;
 }
 
+int EditFile::getBufferID()
+{
+	return _bufferID;
+}

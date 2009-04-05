@@ -8,7 +8,7 @@
 #include "AboutDialog.h"
 #include "ConfigDialog.h"
 #include "windows.h"
-#include <tchar.h>
+#include <TCHAR.H>
 #include <shlwapi.h>
 
 #include <map>
@@ -122,6 +122,19 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			}
 
 			break;
+		case NPPN_SHORTCUTREMAPPED:
+			if (notifyCode->nmhdr.idFrom == funcItem[0]._cmdID)
+			{
+				ShortcutKey *sKey = (ShortcutKey*)(notifyCode->nmhdr.hwndFrom);
+				if (sKey->_key == VK_TAB 
+					&& sKey->_isCtrl 
+					&& !sKey->_isAlt 
+					&& !sKey->_isShift)
+				{
+					options.emulateCtrlTab = TRUE;
+				}
+			}
+			break;
 
 		case NPPN_SHUTDOWN:
 			saveSettings();
@@ -220,6 +233,7 @@ void loadSettings(void)
 	}
 
 	options.searchFlags = ::GetPrivateProfileInt(SEARCH_SETTINGS, KEY_SEARCHFLAGS, 0, iniFilePath);
+	options.emulateCtrlTab = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_EMULATECTRLTAB, 0, iniFilePath);
 
 }
 
@@ -249,6 +263,9 @@ void saveSettings(void)
 
 	_itot(options.searchFlags, temp, 10);
 	::WritePrivateProfileString(SEARCH_SETTINGS, KEY_SEARCHFLAGS, temp, iniFilePath);
+
+	_itot(options.emulateCtrlTab, temp, 10);
+	::WritePrivateProfileString(GENERAL_SETTINGS, KEY_EMULATECTRLTAB, temp, iniFilePath);
 
 }
 

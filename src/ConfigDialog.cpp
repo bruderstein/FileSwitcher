@@ -18,7 +18,8 @@ void ConfigDialog::doDialog()
 	if ((_options->searchFlags & SEARCHFLAG_STARTONLY) == 0)
 		::SendDlgItemMessage(_hSelf, IDC_CHECKANYPART, BM_SETCHECK, BST_CHECKED, 0);
 
-
+	::SendDlgItemMessage(_hSelf, IDC_CHECKCTRLTAB, BM_SETCHECK, _options->emulateCtrlTab ? BST_CHECKED : BST_UNCHECKED, 0);
+    
 	goToCenter();
 }
 
@@ -55,6 +56,10 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEPATH, BM_GETCHECK, 0, 0);
 						if (BST_CHECKED == result)
 							_options->searchFlags |= SEARCHFLAG_INCLUDEPATH;
+
+						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKCTRLTAB, BM_GETCHECK, 0, 0);
+						_options->emulateCtrlTab = (BST_CHECKED == result) ? TRUE : FALSE;
+
 
 					case IDCANCEL :
 						display(FALSE);

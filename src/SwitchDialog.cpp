@@ -25,6 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include <map>
 
 WNDPROC g_oldEditProc = 0;
+WNDPROC g_oldListProc = 0;
 
 LRESULT CALLBACK editProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -57,14 +58,60 @@ LRESULT CALLBACK editProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 }
 
 
+LRESULT CALLBACK listProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	bool extended;
+
+ 	switch (message)
+	{
+		case WM_KEYDOWN:
+			// extended = ((lParam & 0x01000000) == 0x01000000);
+			::SendMessage(GetParent(hwnd), WM_KEYDOWN, wParam, 0);
+			return TRUE;
+		
+		case WM_KEYUP:
+			if (wParam == VK_CONTROL)
+			{
+				::SendMessage(GetParent(hwnd), WM_KEYUP, wParam, 0);
+				return TRUE;
+			}
+			break;
+
+		case WM_GETDLGCODE :
+		{
+			LRESULT dlgCode = CallWindowProc(g_oldListProc, hwnd, message, wParam, lParam);
+			dlgCode |= DLGC_WANTTAB;
+			return dlgCode;
+		}
+
+		default:
+			if (g_oldListProc) 
+			{
+				return ::CallWindowProc(g_oldListProc, hwnd, message, wParam, lParam);
+			}
+			else
+			{
+				return ::DefWindowProc(hwnd, message, wParam, lParam);
+			}
+
+
+
+	}
+	
+}
+
+
 
 void SwitchDialog::setFilenames(TCHAR **filenames, int nbFiles)
 {
 	_editFiles = new EditFile*[nbFiles];
-
+	_bufferToIndex.clear();
 	for(int index = 0; index < nbFiles; ++index)
 	{
-		_editFiles[index] = new EditFile(index, filenames[index], _options->searchFlags);
+		int bufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETBUFFERIDFROMPOS, index, 0);
+
+		_editFiles[index] = new EditFile(index, filenames[index], _options->searchFlags, bufferID);
+		_bufferToIndex[bufferID] = index;
 	}
 	
 	_nbFiles = nbFiles;
@@ -79,6 +126,10 @@ void SwitchDialog::doDialog()
         create(IDD_SWITCHDIALOG);
 		g_oldEditProc = (WNDPROC)::GetWindowLong(GetDlgItem(_hSelf, IDC_FILEEDIT), GWLP_WNDPROC);
 		::SetWindowLong(GetDlgItem(_hSelf, IDC_FILEEDIT), GWLP_WNDPROC, (LONG)editProc);
+
+		g_oldListProc = (WNDPROC)::GetWindowLong(GetDlgItem(_hSelf, IDC_FILELIST), GWLP_WNDPROC);
+		::SetWindowLong(GetDlgItem(_hSelf, IDC_FILELIST), GWLP_WNDPROC, (LONG)listProc);
+
 		::GetClientRect(GetDlgItem(_hSelf, IDOK), &_okButtonRect);
 		::GetClientRect(GetDlgItem(_hSelf, IDCANCEL), &_cancelButtonRect);
 		::GetClientRect(GetDlgItem(_hSelf, IDC_FILEEDIT), &_editboxRect);
@@ -115,28 +166,57 @@ void SwitchDialog::doDialog()
 			goToCenter();
 			updateWindowPosition();
 		}
+
+		
+
 	}
 	
 
 	refreshSearchFlags();
     showAndPositionWindow();
 	
-	int currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
-	if (_typedForFile->find(currentBufferID) != _typedForFile->end())
+	if (_options->emulateCtrlTab)
 	{
-		::SetDlgItemText(_hSelf, IDC_FILEEDIT, (*_typedForFile)[currentBufferID]);
+			_overrideCtrlTab = FALSE;
+			SHORT ctrlState = ::GetKeyState(VK_CONTROL) & 0x80;
+			SHORT shiftState = ::GetKeyState(VK_SHIFT) & 0x80;
+			
+			searchFiles(_T(""));
+			int currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
+			
+			int currentIndex = _bufferToIndex[currentBufferID];
+
+
+			::SetDlgItemText(_hSelf, IDC_FILEEDIT, _T(""));
+			::SendDlgItemMessage(_hSelf, IDC_FILELIST, LB_SETCURSEL, currentIndex, 0);
+			if (shiftState) 
+				moveSelectionUp(TRUE);
+			else 
+				moveSelectionDown(TRUE);
+
+			::SetFocus(GetDlgItem(_hSelf, IDC_FILELIST));
+			EnableWindow(GetDlgItem(_hSelf, IDC_FILEEDIT), FALSE);
+			
 	}
-	
+	else 
+	{
 
-	TCHAR searchString[SEARCH_STRING_BUFFER_MAX];
-	
+		int currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
+		if (_typedForFile->find(currentBufferID) != _typedForFile->end())
+		{
+			::SetDlgItemText(_hSelf, IDC_FILEEDIT, (*_typedForFile)[currentBufferID]);
+		}
+		
 
-	::GetDlgItemText(_hSelf, IDC_FILEEDIT, (LPTSTR)searchString, SEARCH_STRING_BUFFER_MAX);
-	searchFiles(searchString);
+		TCHAR searchString[SEARCH_STRING_BUFFER_MAX];
+		
 
-	::SendDlgItemMessage(_hSelf, IDC_FILEEDIT, EM_SETSEL, 0, _tcslen(searchString));
-	::SetFocus(GetDlgItem(_hSelf, IDC_FILEEDIT));
+		::GetDlgItemText(_hSelf, IDC_FILEEDIT, (LPTSTR)searchString, SEARCH_STRING_BUFFER_MAX);
+		searchFiles(searchString);
 
+		::SendDlgItemMessage(_hSelf, IDC_FILEEDIT, EM_SETSEL, 0, _tcslen(searchString));
+		::SetFocus(GetDlgItem(_hSelf, IDC_FILEEDIT));
+	}
 }
 
 void SwitchDialog::showAndPositionWindow()
@@ -166,18 +246,22 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 		{
 			return TRUE;
 		}
+
+
+			
+
 		case WM_KEYDOWN :
 		{
 			switch (wParam)
 			{
 				case VK_DOWN:
 				{
-					moveSelectionDown();
+					moveSelectionDown(FALSE);
 					return TRUE;
 				}
 				case VK_UP:
 				{
-					moveSelectionUp();
+					moveSelectionUp(FALSE);
 					return TRUE;
 				}
 				case VK_NEXT:
@@ -190,9 +274,80 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 					moveSelectionTop();
 					return TRUE;
 				}
+				case VK_TAB:
+				{
+					if (_options->emulateCtrlTab && !_overrideCtrlTab)
+					{
+						if (::GetKeyState(VK_SHIFT) & 0x80)
+							moveSelectionUp(TRUE);
+						else
+							moveSelectionDown(TRUE);
+					}
+					else {
+						::SetFocus(GetDlgItem(_hSelf, IDC_FILEEDIT));
+					}
+					return TRUE;
+					break;
+				}
+
+				case VK_SHIFT:
+					return TRUE;
+					break;
+
+				default:
+					int result;
+					if (_options->emulateCtrlTab && !_overrideCtrlTab)
+					{
+						HWND hFileEdit = ::GetDlgItem(_hSelf, IDC_FILEEDIT);
+						::EnableWindow(hFileEdit, TRUE);
+						::SetFocus(hFileEdit);
+						BYTE keyState[256];
+						
+						::GetKeyboardState((PBYTE)&keyState);
+						keyState[VK_CONTROL] = 0;
+						WORD buffer;
+						
+						result = ::ToAscii(wParam, (lParam & 0x00FF0000) >> 16, (const BYTE *)&keyState, &buffer, 0);
+						if (1 == result)
+						{
+							char temp[2];
+							temp[0] = (char)buffer;
+							temp[1] = '\0';
+							::SetDlgItemTextA(_hSelf, IDC_FILEEDIT, temp);
+							::SendDlgItemMessage(_hSelf, IDC_FILEEDIT, EM_SETSEL, 1, 1);
+							::SetFocus(GetDlgItem(_hSelf, IDC_FILEEDIT));
+							_overrideCtrlTab = TRUE;
+						}
+
+						
+
+
+						/*
+						INPUT input;
+						input.type = INPUT_KEYBOARD;
+						input.ki.wVk = wParam;
+						input.ki.wScan = (lParam & 0x00FF0000) >> 16;
+						input.ki.dwFlags = 0;
+						UINT inputResult = ::SendInput(1, &input, sizeof(INPUT));
+						input.type = INPUT_KEYBOARD;
+						*/
+						//::SendMessage(hFileEdit, Message, wParam, lParam);
+						//::SendMessage(hFileEdit, WM_KEYUP, wParam, lParam);
+					}
+					break;
 			}
 			break;
 		}
+
+		case WM_KEYUP:
+			if (_options->emulateCtrlTab && !_overrideCtrlTab)
+			{
+				if (VK_CONTROL == wParam)
+				{
+					switchToSelectedBuffer();
+				}
+			}
+			break;
 
 		case WM_SIZE:
 			width = LOWORD(lParam);
@@ -233,29 +388,18 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 
 
 				case IDC_FILELIST:
-					// For a double click - act as if OK has been pressed
 					if (HIWORD(wParam) == LBN_DBLCLK)
-						wParam = IDOK;
+						switchToSelectedBuffer();
+					break;
 					
 				default:
 
 			
-					int lbIndex;
+					
 					switch (wParam)
 					{
 						case IDOK :
-							lbIndex = SendDlgItemMessage(_hSelf, IDC_FILELIST, LB_GETCURSEL, 0, 0);
-							if (LB_ERR != lbIndex)
-							{
-								int currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
-								EditFile *editFile = (EditFile*)SendDlgItemMessage(_hSelf, IDC_FILELIST, LB_GETITEMDATA, lbIndex, 0);
-								::SendMessage(_nppData._nppHandle, NPPM_SWITCHTOFILE, 0, (LPARAM)(TCHAR *)editFile->getFullFilename());
-								
-								TCHAR *searchCopy = new TCHAR[SEARCH_STRING_BUFFER_MAX];
-								::GetDlgItemText(_hSelf, IDC_FILEEDIT, (LPTSTR)searchCopy, SEARCH_STRING_BUFFER_MAX);
-								
-								(*_typedForFile)[currentBufferID] = searchCopy;
-							}
+							switchToSelectedBuffer();
 						case IDCANCEL :
 							updateWindowPosition();
 							display(FALSE);
@@ -272,6 +416,21 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 	return FALSE;
 }
 
+void SwitchDialog::switchToSelectedBuffer()
+{
+	int lbIndex = SendDlgItemMessage(_hSelf, IDC_FILELIST, LB_GETCURSEL, 0, 0);
+	if (LB_ERR != lbIndex)
+	{
+		int currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
+		EditFile *editFile = (EditFile*)SendDlgItemMessage(_hSelf, IDC_FILELIST, LB_GETITEMDATA, lbIndex, 0);
+		::SendMessage(_nppData._nppHandle, NPPM_SWITCHTOFILE, 0, (LPARAM)(TCHAR *)editFile->getFullFilename());
+		
+		TCHAR *searchCopy = new TCHAR[SEARCH_STRING_BUFFER_MAX];
+		::GetDlgItemText(_hSelf, IDC_FILEEDIT, (LPTSTR)searchCopy, SEARCH_STRING_BUFFER_MAX);
+		
+		(*_typedForFile)[currentBufferID] = searchCopy;
+	}
+}
 
 void SwitchDialog::setWindowPosition(int x, int y, int width, int height)
 {
@@ -363,17 +522,24 @@ void SwitchDialog::searchFiles(TCHAR* search)
 }
 
 
-void SwitchDialog::moveSelectionUp(void)
+void SwitchDialog::moveSelectionUp(BOOL wrap)
 {
 	HWND hFileList = GetDlgItem(_hSelf, IDC_FILELIST);
 	int currentlySelected = SendMessage(hFileList, LB_GETCURSEL, 0, 0);
 	if (currentlySelected > 0)
 	{
 		::SendMessage(hFileList, LB_SETCURSEL, currentlySelected - 1, 0);
+	} 
+	else if (wrap)
+	{
+		int itemCount = ::SendMessage(hFileList, LB_GETCOUNT, 0, 0);
+		if (itemCount > 0)
+			::SendMessage(hFileList, LB_SETCURSEL, itemCount - 1, 0);
 	}
+
 }
 
-void SwitchDialog::moveSelectionDown(void)
+void SwitchDialog::moveSelectionDown(BOOL wrap)
 {
 	HWND hFileList = ::GetDlgItem(_hSelf, IDC_FILELIST);
 	int currentlySelected = ::SendMessage(hFileList, LB_GETCURSEL, 0, 0);
@@ -382,6 +548,10 @@ void SwitchDialog::moveSelectionDown(void)
 	if (currentlySelected < itemCount - 1)
 	{
 		::SendMessage(hFileList, LB_SETCURSEL, currentlySelected + 1, 0);
+	}
+	else if (wrap)
+	{
+		::SendMessage(hFileList, LB_SETCURSEL, 0, 0);
 	}
 }
 
