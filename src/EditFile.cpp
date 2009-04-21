@@ -31,36 +31,11 @@ EditFile::EditFile(int index, CONST TCHAR* filename, int searchFlags, int buffer
 	_path[position] = '\0';
 	_tcscpy(_filename, (_fullFilename + position + filenameOffset));
 
-
-	_tcscpy(_display, _filename);
-
-	if (_tcscmp(_path, _T("")))
-	{
-		_tcscat(_display, _T(" ("));
-		_tcscat(_display, _path);
-		_tcscat(_display, _T(")"));
-	}
-
-	if (searchFlags & SEARCHFLAG_INCLUDEPATH)
-	{
-		_searchFilename = new TCHAR[filenameLength + 1];
-		_tcscpy(_searchFilename, _fullFilename);
-
-	}
-	else 
-	{
-		_searchFilename = new TCHAR[filenameOnlyLength];
-		_tcscpy(_searchFilename, _filename);
-	}
-
-	if ((searchFlags & SEARCHFLAG_CASESENSITIVE) == 0)
-	{
-		_tcslwr(_searchFilename);
-	}
-
+	
 	_dataSet = true;
 	_index = index;
 	_bufferID = bufferID;
+	_fileStatus = SAVED;
 }
 
 EditFile::~EditFile(void)
@@ -69,20 +44,20 @@ EditFile::~EditFile(void)
 	{
 		delete[] _fullFilename;
 		delete[] _path;
-		delete[] _display;
 		delete[] _filename;
-		delete[] _searchFilename;
 	}
 }
 
-TCHAR *EditFile::getDisplayString()
-{
-	return _display;
-}
+
 
 TCHAR *EditFile::getFilename()
 {
 	return _filename;
+}
+
+TCHAR *EditFile::getPath()
+{
+	return _path;
 }
 
 TCHAR *EditFile::getFullFilename()
@@ -90,17 +65,29 @@ TCHAR *EditFile::getFullFilename()
 	return _fullFilename;
 }
 
-TCHAR *EditFile::getSearchFilename()
-{
-	return _searchFilename;
-}
+
 
 int EditFile::getIndex()
 {
 	return _index;
 }
 
+void EditFile::setIndex(int index)
+{
+	_index = index;
+}
+
 int EditFile::getBufferID()
 {
 	return _bufferID;
+}
+
+FileStatus EditFile::getFileStatus()
+{
+	return _fileStatus;
+}
+
+void EditFile::setFileStatus(FileStatus status)
+{
+	_fileStatus = status;
 }

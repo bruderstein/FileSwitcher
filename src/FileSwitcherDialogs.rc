@@ -64,18 +64,19 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
 // Dialog
 //
 
-IDD_SWITCHDIALOG DIALOGEX 0, 0, 314, 169
+IDD_SWITCHDIALOG DIALOGEX 0, 0, 338, 169
 STYLE DS_SETFONT | DS_FIXEDSYS | DS_CENTER | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU | WS_THICKFRAME
 EXSTYLE WS_EX_PALETTEWINDOW
 CAPTION "File Switcher"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,257,7,50,14,NOT WS_TABSTOP
-    PUSHBUTTON      "Cancel",IDCANCEL,257,24,50,14,NOT WS_TABSTOP
-    EDITTEXT        IDC_FILEEDIT,7,7,241,14,ES_AUTOHSCROLL
-    LISTBOX         IDC_FILELIST,7,27,242,135,LBS_USETABSTOPS | 
-                    LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    DEFPUSHBUTTON   "OK",IDOK,281,7,50,14,NOT WS_TABSTOP
+    PUSHBUTTON      "Cancel",IDCANCEL,281,24,50,14,NOT WS_TABSTOP
+    EDITTEXT        IDC_FILEEDIT,7,7,269,14,ES_AUTOHSCROLL
+    CONTROL         "",IDC_LISTVIEW,"SysListView32",LVS_REPORT | 
+                    LVS_SINGLESEL | LVS_SHOWSELALWAYS | LVS_ALIGNLEFT | 
+                    WS_BORDER | WS_TABSTOP,7,23,270,139
 END
 
 IDD_ABOUTDIALOG DIALOGEX 0, 0, 209, 65
@@ -90,22 +91,42 @@ BEGIN
     LTEXT           "davegb@pobox.com",IDC_STATIC,33,39,67,8
 END
 
-IDD_CONFIGDIALOG DIALOGEX 0, 0, 186, 102
+IDD_CONFIGDIALOG DIALOGEX 0, 0, 238, 255
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "File Switcher Search Options"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
     CONTROL         "Case sensitive search",IDC_CHECKCASE,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,14,85,10
-    CONTROL         "Use any part of filename",IDC_CHECKANYPART,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,32,95,10
-    CONTROL         "Include path in search",IDC_CHECKINCLUDEPATH,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,51,87,10
+    CONTROL         "Only look at start of filename component",
+                    IDC_CHECKSTARTONLY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    17,32,146,10
     CONTROL         "Emulate Ctrl-Tab document switching",IDC_CHECKCTRLTAB,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,18,69,134,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,17,49,134,10
+    GROUPBOX        "Items to include in search",IDC_STATIC,15,69,143,57
+    CONTROL         "Filename",IDC_CHECKINCLUDEFILENAME,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,27,82,44,10
+    CONTROL         "Path",IDC_CHECKINCLUDEPATH,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,27,96,31,10
+    CONTROL         "File index",IDC_CHECKINCLUDEINDEX,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,27,110,46,10
+    GROUPBOX        "Default Sort Order",IDC_STATIC,15,135,143,72
+    CONTROL         "Always remember user selection",IDC_RADIOSORTREMEMBER,
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP,27,147,118,10
+    CONTROL         "Filename, Path",IDC_RADIOSORTFILENAME,"Button",
+                    BS_AUTORADIOBUTTON,27,161,63,10
+    CONTROL         "Path, Filename",IDC_RADIOSORTPATH,"Button",
+                    BS_AUTORADIOBUTTON,27,176,63,10
+    CONTROL         "Document / Tab order",IDC_RADIOSORTINDEX,"Button",
+                    BS_AUTORADIOBUTTON,27,191,86,10
+    CONTROL         "Sort descending",IDC_CHECKSORTDESCENDING,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,211,67,10
+    CONTROL         "Reset to default order for each switch",
+                    IDC_CHECKRESETSORTORDER,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,225,136,10
+    DEFPUSHBUTTON   "OK",IDOK,181,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,181,24,50,14
 END
 
 
@@ -120,7 +141,7 @@ BEGIN
     IDD_SWITCHDIALOG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 307
+        RIGHTMARGIN, 331
         TOPMARGIN, 7
         BOTTOMMARGIN, 162
     END
@@ -136,9 +157,9 @@ BEGIN
     IDD_CONFIGDIALOG, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 179
+        RIGHTMARGIN, 231
         TOPMARGIN, 7
-        BOTTOMMARGIN, 95
+        BOTTOMMARGIN, 247
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -184,6 +205,25 @@ BEGIN
     END
 END
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_SORTUP              BITMAP                  "SortUp.bmp"
+IDB_SORTDOWN            BITMAP                  "SortDown.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_UNSAVED             ICON                    "unsaved.ico"
+IDI_READONLY            ICON                    "readonly.ico"
+IDI_SAVED               ICON                    "saved.ico"
 #endif    // English (U.K.) resources
 /////////////////////////////////////////////////////////////////////////////
 

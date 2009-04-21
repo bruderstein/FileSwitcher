@@ -32,7 +32,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shlwapi.lib"
+				AdditionalDependencies="shlwapi.lib comctl32.lib"
 				OutputFile="c:\program files\notepad++\plugins\FileSwitcher.dll"
 				LinkIncremental="2"
 				GenerateDebugInformation="TRUE"
@@ -63,7 +63,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="Release"
+			OutputDirectory="c:\program files\notepad++\plugins"
 			IntermediateDirectory="Release"
 			ConfigurationType="2"
 			CharacterSet="2">
@@ -80,7 +80,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shlwapi.lib"
+				AdditionalDependencies="shlwapi.lib comctl32.lib"
 				OutputFile="$(OutDir)/$(ProjectName).dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
@@ -132,7 +132,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shlwapi.lib"
+				AdditionalDependencies="shlwapi.lib comctl32.lib"
 				OutputFile="$(OutDir)/FileSwitcher.dll"
 				LinkIncremental="2"
 				GenerateDebugInformation="TRUE"
@@ -180,7 +180,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shlwapi.lib"
+				AdditionalDependencies="shlwapi.lib comctl32.lib"
 				OutputFile="$(OutDir)/$(ProjectName).dll"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"
@@ -219,7 +219,13 @@
 			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
 			<File
+				RelativePath="..\..\src\Compare.cpp">
+			</File>
+			<File
 				RelativePath="..\..\src\EditFile.cpp">
+			</File>
+			<File
+				RelativePath="..\..\src\FileListView.cpp">
 			</File>
 			<File
 				RelativePath="..\..\src\FileSwitcher.cpp">
@@ -256,7 +262,13 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
 			<File
+				RelativePath="..\..\src\Compare.h">
+			</File>
+			<File
 				RelativePath="..\..\src\EditFile.h">
+			</File>
+			<File
+				RelativePath="..\..\src\FileListView.h">
 			</File>
 			<File
 				RelativePath="..\..\src\FileSwitcher.h">
@@ -298,6 +310,9 @@
 				<File
 					RelativePath="..\..\..\Common\Ccpp\SysMsg.h">
 				</File>
+				<File
+					RelativePath="..\..\..\Common\Ccpp\Window.h">
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -306,6 +321,21 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}">
 			<File
 				RelativePath="..\..\src\FileSwitcherDialogs.rc">
+			</File>
+			<File
+				RelativePath="..\..\src\readonly.ico">
+			</File>
+			<File
+				RelativePath="..\..\src\saved.ico">
+			</File>
+			<File
+				RelativePath="..\..\src\SortDown.bmp">
+			</File>
+			<File
+				RelativePath="..\..\src\SortUp.bmp">
+			</File>
+			<File
+				RelativePath="..\..\src\unsaved.ico">
 			</File>
 		</Filter>
 	</Files>

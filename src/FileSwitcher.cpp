@@ -7,31 +7,45 @@
 #include "SwitchDialog.h"
 #include "AboutDialog.h"
 #include "ConfigDialog.h"
-#include "windows.h"
+#include <windows.h>
 #include <TCHAR.H>
 #include <shlwapi.h>
-
 #include <map>
 
 #ifdef _MANAGED
 #pragma managed(push, off)
 #endif
 
-CONST TCHAR PLUGIN_NAME[] = _T("File Switcher");
 
-const int nbFunc = 3;
-NppData nppData;
 
-SwitchDialog switchDlg;
-AboutDialog aboutDlg;
-ConfigDialog configDlg;
+/* Info for Notepad++ */
+CONST TCHAR PLUGIN_NAME[]	= _T("File Switcher");
+const int	nbFunc			= 3;
+FuncItem	funcItem[nbFunc];
+
+/* Global data */
+NppData				nppData;
+HANDLE				g_hModule			= NULL;
+HIMAGELIST			ghImgList			= NULL;
+TCHAR				iniFilePath[MAX_PATH];
+winVer				gWinVersion			= WV_UNKNOWN;
+struct options_t	options;
+
+
+EditFileContainer   editFiles;
 
 std::map<int, TCHAR *> typedForFile;
 
-FuncItem funcItem[nbFunc];
-HANDLE g_hModule  = NULL;
-TCHAR iniFilePath[MAX_PATH];
-struct options_t options;
+
+/* Dialogs */
+SwitchDialog	switchDlg;
+AboutDialog		aboutDlg;
+ConfigDialog	configDlg;
+
+
+
+
+
 
 
 void showSwitchDialog();
@@ -39,6 +53,10 @@ void doAbout();
 void doConfig();
 void loadSettings();
 void saveSettings();
+void addEditFile(int bufferID);
+void removeEditFile(int bufferID);
+void updateCurrentStatus(FileStatus status);
+void clearEditFiles();
 
 
 BOOL APIENTRY DllMain( HMODULE hModule,
@@ -68,6 +86,13 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		  funcItem[1]._pShKey = NULL;
 		  funcItem[2]._pShKey = NULL;
 		  
+		  /* create image list with icons */
+		  ghImgList = ImageList_Create(16, 16, ILC_COLOR32 | ILC_MASK, 6, 30);
+		  ImageList_AddIcon(ghImgList, ::LoadIcon((HINSTANCE)g_hModule, MAKEINTRESOURCE(IDI_SAVED)));
+		  ImageList_AddIcon(ghImgList, ::LoadIcon((HINSTANCE)g_hModule, MAKEINTRESOURCE(IDI_UNSAVED)));
+		  ImageList_AddIcon(ghImgList, ::LoadIcon((HINSTANCE)g_hModule, MAKEINTRESOURCE(IDI_READONLY)));
+
+
 	      break;
 
 	case DLL_THREAD_ATTACH:
@@ -90,6 +115,7 @@ extern "C" __declspec(dllexport) void setInfo(NppData notepadPlusData)
 	aboutDlg.init((HINSTANCE)g_hModule, nppData);
 	configDlg.init((HINSTANCE)g_hModule, nppData, &options);
 
+	gWinVersion  = (winVer)::SendMessage(nppData._nppHandle, NPPM_GETWINDOWSVERSION, 0, 0);
 	loadSettings();
 
 }
@@ -120,8 +146,10 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 				delete[] typedForFile[notifyCode->nmhdr.idFrom];
 				typedForFile.erase(notifyCode->nmhdr.idFrom);
 			}
+			removeEditFile(notifyCode->nmhdr.idFrom);
 
 			break;
+
 		case NPPN_SHORTCUTREMAPPED:
 			if (notifyCode->nmhdr.idFrom == funcItem[0]._cmdID)
 			{
@@ -138,7 +166,29 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 
 		case NPPN_SHUTDOWN:
 			saveSettings();
+			clearEditFiles();
 			break;
+
+
+		case NPPN_FILEOPENED:
+			addEditFile(notifyCode->nmhdr.idFrom);
+			break;
+	}
+
+	if (notifyCode->nmhdr.hwndFrom == nppData._scintillaMainHandle 
+		|| notifyCode->nmhdr.hwndFrom == nppData._scintillaSecondHandle)
+	{
+		switch (notifyCode->nmhdr.code)
+		{
+
+			case SCN_SAVEPOINTLEFT:
+				updateCurrentStatus(UNSAVED);
+			break;
+
+			case SCN_SAVEPOINTREACHED:
+				updateCurrentStatus(SAVED);
+			break;
+		}
 	}
 
 }
@@ -168,24 +218,60 @@ void showSwitchDialog()
 		fileNames[i] = new TCHAR[MAX_PATH];
 	}
 
-	if (::SendMessage(nppData._nppHandle, NPPM_GETOPENFILENAMES, (WPARAM)fileNames, (LPARAM)nbFile))
+	if (::SendMessage(nppData._nppHandle, NPPM_GETOPENFILENAMES, reinterpret_cast<WPARAM>(fileNames), static_cast<LPARAM>(nbFile)))
 	{
-		switchDlg.setFilenames(fileNames, nbFile - 1);
-		int docIndex = ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDOCINDEX, 0, 0);
+		
+		//switchDlg.setFilenames(fileNames, nbFile - 1);
+		
+		int bufferID;
+		for(int position = 0; position < nbFile; position++)
+		{
+			bufferID = ::SendMessage(nppData._nppHandle, NPPM_GETBUFFERIDFROMPOS, position, 0);
+			if (editFiles.find(bufferID) != editFiles.end())
+				editFiles[bufferID]->setIndex(position);
+		}
 
-		switchDlg.doDialog();
+		switchDlg.doDialog(editFiles);
+		
 	}
-
 	
+	
+	
+	/*
 
 	for (int i = 0 ; i < nbFile ; i++)
 	{
 		delete [] fileNames[i];
 	}
 	delete [] fileNames;
-	
+	*/
 	
 
+}
+
+
+void addEditFile(int bufferID)
+{
+	TCHAR filePath[MAX_PATH];
+	::SendMessage(nppData._nppHandle, NPPM_GETFULLPATHFROMBUFFERID, bufferID, reinterpret_cast<LPARAM>(filePath));
+	int index = ::SendMessage(nppData._nppHandle, NPPM_GETPOSFROMBUFFERID, bufferID, reinterpret_cast<LPARAM>(filePath));
+	editFiles[bufferID] = new EditFile(index, filePath, 0, bufferID);
+
+}
+
+void removeEditFile(int bufferID)
+{
+	editFiles.erase(bufferID);
+}
+
+void updateCurrentStatus(FileStatus status)
+{
+	int bufferID = ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
+	editFiles[bufferID]->setFileStatus(status);
+}
+
+void clearEditFiles()
+{
 }
 
 void doAbout()
@@ -232,9 +318,16 @@ void loadSettings(void)
 		switchDlg.setWindowPosition(dialogX, dialogY, dialogWidth, dialogHeight);
 	}
 
-	options.searchFlags = ::GetPrivateProfileInt(SEARCH_SETTINGS, KEY_SEARCHFLAGS, 0, iniFilePath);
+	options.searchFlags = ::GetPrivateProfileInt(SEARCH_SETTINGS, KEY_SEARCHFLAGS, SEARCHFLAG_INCLUDEFILENAME, iniFilePath);
+	if (options.searchFlags == 0)
+		options.searchFlags = SEARCHFLAG_INCLUDEFILENAME;
+
 	options.emulateCtrlTab = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_EMULATECTRLTAB, 0, iniFilePath);
 
+	options.resetSortOrder = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_RESETSORT, 0, iniFilePath);
+	options.defaultSortOrder = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_DEFAULTSORT, 0, iniFilePath);
+	options.activeSortOrder = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_ACTIVESORT, 0, iniFilePath);
+	
 }
 
 
@@ -259,6 +352,11 @@ void saveSettings(void)
 
 		_itot(rc.bottom - rc.top, temp, 10);
 		::WritePrivateProfileString(WINDOW_SETTINGS, KEY_WINDOWHEIGHT, temp, iniFilePath);
+
+
+		_itot(switchDlg.getCurrentSortOrder(), temp, 10);
+		::WritePrivateProfileString(SORT_SETTINGS, KEY_ACTIVESORT, temp, iniFilePath);
+
 	}
 
 	_itot(options.searchFlags, temp, 10);
@@ -267,6 +365,13 @@ void saveSettings(void)
 	_itot(options.emulateCtrlTab, temp, 10);
 	::WritePrivateProfileString(GENERAL_SETTINGS, KEY_EMULATECTRLTAB, temp, iniFilePath);
 
+	_itot(options.defaultSortOrder, temp, 10);
+	::WritePrivateProfileString(SORT_SETTINGS, KEY_DEFAULTSORT, temp, iniFilePath);
+
+	_itot(options.resetSortOrder, temp, 10);
+	::WritePrivateProfileString(SORT_SETTINGS, KEY_RESETSORT, temp, iniFilePath);
+
+	
 }
 
 

@@ -25,13 +25,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "EditFile.h"
 #include "resource.h" 
 #include "FileSwitcher.h"
+#include "FileListView.h"
 
 class SwitchDialog : public StaticDialog
 {
 
 public:
+	
 	SwitchDialog() : StaticDialog() {};
     
+	
+
 	void init(HINSTANCE hInst, NppData nppData, struct options_t *options, std::map<int, TCHAR *> *typedForFile)
 	{
 		_nppData = nppData;
@@ -43,14 +47,14 @@ public:
 		_typedForFile = typedForFile;
 
 		_options = options;
-		refreshSearchFlags();
 	};
 
-   	void doDialog();
+   	void doDialog(EditFileContainer &editFiles);
 
 	void setFilenames(TCHAR **filenames, int nbFiles);
 	void setWindowPosition(int x, int y, int width, int height);
 	void getWindowPosition(RECT &rc);
+	int getCurrentSortOrder(void);
 	
 
     virtual void destroy() {};
@@ -62,43 +66,60 @@ protected :
 private:
 	/* Handles */
 	NppData			_nppData;
-    HWND			_HSource;
+    HWND			_hSource;
+	HWND			_hEditbox;
+	HWND			_hListView;
 
-	/* Private data */
-	EditFile** _editFiles;
+	FileListView    _listView;
+
+	/* File/buffer info */
+	EditFileContainer _editFiles;
 	int _nbFiles;
+
+	/* Rectangles for current size */
 	RECT _okButtonRect;
 	RECT _cancelButtonRect;
 	RECT _listboxRect;
 	RECT _editboxRect;
-	BOOL _overrideCtrlTab;
 
+	/* Current size and position */
 	int _dialogWidth, _dialogHeight;
 	int _dialogX, _dialogY;
+
+	/* Flag to indicate that Ctrl-Tab functionality has stopped, as a key has been pressed */
+	BOOL _overrideCtrlTab;
+
 
 	/* Search flags */
 	BOOL _startOnly;
 	BOOL _caseSensitive;
 
+	/* Options structure */
 	struct options_t *_options;
+
+	/* Record of what was typed in for each file */
 	std::map<int, TCHAR *> *_typedForFile;
+
+	/* Link between BufferID and file index */
 	std::map<int, int> _bufferToIndex;
 
 	/* Private methods */
     void cleanup(void);
 	void searchFiles(TCHAR* searchString);
-	void addListEntry(EditFile &editFile, bool selected);
+	void addListEntry(EditFile *editFile, bool selected);
 	void clearList(void);
 	void moveSelectionUp(BOOL wrap);
 	void moveSelectionDown(BOOL wrap);
 	void moveSelectionTop(void);
 	void moveSelectionBottom(void);
 	void updateWindowPosition(void);
-	void refreshSearchFlags(void);
 	void switchToSelectedBuffer(void);
+	void setupListView(void);
 
 	/* Constants */
 	static const int SEARCH_STRING_BUFFER_MAX = 255;
+
+
 	
 	
 

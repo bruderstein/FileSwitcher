@@ -1,9 +1,14 @@
 #pragma once
 
-
 #include "SearchOptions.h"
 
 
+enum FileStatus
+{
+	SAVED,
+	UNSAVED,
+    READONLY
+};
 
 
 class EditFile
@@ -17,10 +22,12 @@ public:
 	
 	TCHAR* getFilename();
 	TCHAR* getFullFilename();
-	TCHAR* getSearchFilename();
-	TCHAR* getDisplayString();
+	TCHAR* getPath();
 	int getIndex();
+	void setIndex(int index);
 	int getBufferID();
+	FileStatus getFileStatus();
+	void setFileStatus(FileStatus status);
 
 private:
 	TCHAR* _fullFilename;
@@ -28,6 +35,7 @@ private:
 	TCHAR* _path;
 	TCHAR* _filename;
 	TCHAR* _display;
+	FileStatus _fileStatus;
 	int _index;
 	bool _dataSet;
 	int _bufferID;
