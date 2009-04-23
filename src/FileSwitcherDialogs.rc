@@ -86,7 +86,7 @@ CAPTION "About File Switcher"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,152,7,50,14
-    LTEXT           "File Switcher 0.2",IDC_STATIC,7,7,124,8
+    LTEXT           "File Switcher 0.5",IDC_STATIC,7,7,124,8
     LTEXT           "Author: Dave Brotherstone",IDC_STATIC,7,29,88,8
     LTEXT           "davegb@pobox.com",IDC_STATIC,33,39,67,8
 END
@@ -171,8 +171,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,2,0,0
- PRODUCTVERSION 0,2,0,0
+ FILEVERSION 0,5,0,0
+ PRODUCTVERSION 0,5,0,0
  FILEFLAGSMASK 0x37L
 #ifdef _DEBUG
  FILEFLAGS 0x21L
@@ -187,16 +187,16 @@ BEGIN
     BEGIN
         BLOCK "080904b0"
         BEGIN
-            VALUE "Comments", "Source available from http://www.brotherstone.co.uk/npp/FileSwitcher_src.zip"
+            VALUE "Comments", "Latest Source available from http://www.brotherstone.co.uk/npp/FileSwitcher_src.zip"
             VALUE "CompanyName", "Dave Brotherstone"
             VALUE "FileDescription", "Notepad++ File Switcher plugin : a free (GPL) source code file switcher plugin"
-            VALUE "FileVersion", "0, 2, 0, 0"
+            VALUE "FileVersion", "0, 5, 0, 0"
             VALUE "InternalName", "File Switcher"
             VALUE "LegalCopyright", "Copyright (C) 2009"
             VALUE "OriginalFilename", "FileSwitcher.dll"
             VALUE "ProductName", "File Switcher plugin"
-            VALUE "ProductVersion", "0, 2, 0, 0"
-            VALUE "SpecialBuild", "ANSI"
+            VALUE "ProductVersion", "0, 5, 0, 0"
+            VALUE "SpecialBuild", "UNICODE"
         END
     END
     BLOCK "VarFileInfo"

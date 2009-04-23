@@ -7,6 +7,8 @@
 #include <Notepad_plus_msgs.h>
 #include <commctrl.h>
 #include <map>
+#include <tchar.h>
+#include <string>
 
 extern winVer gWinVersion;
 extern HIMAGELIST ghImgList;
@@ -37,7 +39,10 @@ extern HIMAGELIST ghImgList;
 #define FSM_START			(WM_APP + 1600)
 #define FSM_ITEMDBLCLK		(FSM_START + 1)
 
-typedef std::map<int, EditFile*> EditFileContainer;
+typedef std::map<int, EditFile*>	EditFileContainer;
+
+
+typedef  std::basic_string<TCHAR>	tstring;
 
 
 struct options_t

@@ -11,16 +11,19 @@
 #include <TCHAR.H>
 #include <shlwapi.h>
 #include <map>
+#include <string>
 
 #ifdef _MANAGED
 #pragma managed(push, off)
 #endif
 
 
+using namespace std;
+
 
 /* Info for Notepad++ */
 CONST TCHAR PLUGIN_NAME[]	= _T("File Switcher");
-const int	nbFunc			= 3;
+const int	nbFunc			= 8;
 FuncItem	funcItem[nbFunc];
 
 /* Global data */
@@ -32,9 +35,10 @@ winVer				gWinVersion			= WV_UNKNOWN;
 struct options_t	options;
 
 
-EditFileContainer   editFiles;
-
-std::map<int, TCHAR *> typedForFile;
+/* Maps for lookups */
+EditFileContainer			editFiles;
+map<tstring, EditFile*>		filenameMap;
+map<int, TCHAR *>			typedForFile;
 
 
 /* Dialogs */
@@ -48,12 +52,17 @@ ConfigDialog	configDlg;
 
 
 
-void showSwitchDialog();
+void showSwitchDialog(BOOL ignoreCtrlTab);
+void showSwitchDialogNormal();
+void showSwitchDialogNext();
+void showSwitchDialogPrevious();
+
 void doAbout();
 void doConfig();
 void loadSettings();
 void saveSettings();
 void addEditFile(int bufferID);
+void addEditFile(TCHAR *filename, int index, int bufferID);
 void removeEditFile(int bufferID);
 void updateCurrentStatus(FileStatus status);
 void clearEditFiles();
@@ -68,16 +77,32 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	switch (ul_reason_for_call)
 	{
 	case DLL_PROCESS_ATTACH:
-		  funcItem[0]._pFunc = showSwitchDialog;
-		  funcItem[1]._pFunc = doConfig;
-		  funcItem[2]._pFunc = doAbout;
+		  funcItem[0]._pFunc = showSwitchDialogNormal;
+		  funcItem[1]._pFunc = NULL;
+		  funcItem[2]._pFunc = showSwitchDialogNext;
+		  funcItem[3]._pFunc = showSwitchDialogPrevious;
+		  funcItem[4]._pFunc = NULL;
+		  funcItem[5]._pFunc = doConfig;
+		  funcItem[6]._pFunc = NULL;
+		  funcItem[7]._pFunc = doAbout;
 		  _tcscpy(funcItem[0]._itemName, _T("Show File Switcher"));
-		  _tcscpy(funcItem[1]._itemName, _T("Options"));
-		  _tcscpy(funcItem[2]._itemName, _T("About"));
+		  _tcscpy(funcItem[1]._itemName, _T("-----------"));
+		  _tcscpy(funcItem[2]._itemName, _T("Switch to next file"));
+		  _tcscpy(funcItem[3]._itemName, _T("Switch to previous file"));
+		  _tcscpy(funcItem[4]._itemName, _T("-----------"));
+		  _tcscpy(funcItem[5]._itemName, _T("Options"));
+		  _tcscpy(funcItem[6]._itemName, _T("-----------"));
+		  _tcscpy(funcItem[7]._itemName, _T("About"));
 
 		  funcItem[0]._init2Check = false;
 		  funcItem[1]._init2Check = false;
 		  funcItem[2]._init2Check = false;
+		  funcItem[3]._init2Check = false;
+		  funcItem[4]._init2Check = false;
+		  funcItem[5]._init2Check = false;
+		  funcItem[6]._init2Check = false;
+		  funcItem[7]._init2Check = false;
+
 		  funcItem[0]._pShKey = new ShortcutKey;
 		  funcItem[0]._pShKey->_isAlt = false;
 		  funcItem[0]._pShKey->_isCtrl = true;
@@ -85,6 +110,12 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		  funcItem[0]._pShKey->_key = 0x4F; //VK_O
 		  funcItem[1]._pShKey = NULL;
 		  funcItem[2]._pShKey = NULL;
+		  funcItem[3]._pShKey = NULL;
+		  funcItem[4]._pShKey = NULL;
+		  funcItem[5]._pShKey = NULL;
+		  funcItem[6]._pShKey = NULL;
+		  funcItem[7]._pShKey = NULL;
+
 		  
 		  /* create image list with icons */
 		  ghImgList = ImageList_Create(16, 16, ILC_COLOR32 | ILC_MASK, 6, 30);
@@ -151,7 +182,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			break;
 
 		case NPPN_SHORTCUTREMAPPED:
-			if (notifyCode->nmhdr.idFrom == funcItem[0]._cmdID)
+			if (notifyCode->nmhdr.idFrom == funcItem[2]._cmdID)
 			{
 				ShortcutKey *sKey = (ShortcutKey*)(notifyCode->nmhdr.hwndFrom);
 				if (sKey->_key == VK_TAB 
@@ -207,7 +238,7 @@ extern "C" __declspec(dllexport) BOOL isUnicode()
 #endif
 
 
-void showSwitchDialog()
+void showSwitchDialog(BOOL ignoreCtrlTab)
 {
 	
 	int nbFile = (int)::SendMessage(nppData._nppHandle, NPPM_GETNBOPENFILES, 0, 0);
@@ -220,58 +251,138 @@ void showSwitchDialog()
 
 	if (::SendMessage(nppData._nppHandle, NPPM_GETOPENFILENAMES, reinterpret_cast<WPARAM>(fileNames), static_cast<LPARAM>(nbFile)))
 	{
-		
-		//switchDlg.setFilenames(fileNames, nbFile - 1);
-		
+
 		int bufferID;
-		for(int position = 0; position < nbFile; position++)
+		tstring filenameString;
+		for(int position = 0; position < nbFile - 1; position++)
 		{
-			bufferID = ::SendMessage(nppData._nppHandle, NPPM_GETBUFFERIDFROMPOS, position, 0);
-			if (editFiles.find(bufferID) != editFiles.end())
-				editFiles[bufferID]->setIndex(position);
+			
+			filenameString = fileNames[position];
+			if (filenameMap.find(filenameString) == filenameMap.end())
+			{
+				bufferID = ::SendMessage(nppData._nppHandle, NPPM_GETBUFFERIDFROMPOS, position, 0);	
+				addEditFile(fileNames[position], position, bufferID);
+			}
+			else 
+			{
+				filenameMap[filenameString]->setIndex(position);
+			}
+			
 		}
 
-		switchDlg.doDialog(editFiles);
+		switchDlg.doDialog(editFiles, ignoreCtrlTab);
 		
 	}
 	
 	
-	
-	/*
-
-	for (int i = 0 ; i < nbFile ; i++)
-	{
-		delete [] fileNames[i];
-	}
-	delete [] fileNames;
-	*/
-	
-
 }
 
+
+void showSwitchDialogNormal()
+{
+		showSwitchDialog(TRUE);
+}
+
+
+void showSwitchDialogNext()
+{
+	if (options.emulateCtrlTab)
+	{
+		showSwitchDialog(FALSE);
+	}
+	else
+	{
+		int nbFile = (int)::SendMessage(nppData._nppHandle, NPPM_GETNBOPENFILES, 0, 0);
+		int position = ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDOCINDEX, 0, 0);
+		if (position < nbFile - 2)
+			++position;
+		else
+			position = 0;
+		::SendMessage(nppData._nppHandle, NPPM_ACTIVATEDOC, 0, position);
+	}
+}
+
+
+void showSwitchDialogPrevious()
+{
+	if (options.emulateCtrlTab)
+	{
+		showSwitchDialog(FALSE);
+	}
+	else
+	{
+		
+		int position = ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDOCINDEX, 0, 0);
+		if (position > 0)
+		{
+			--position;
+		}
+		else
+		{
+			int nbFile = (int)::SendMessage(nppData._nppHandle, NPPM_GETNBOPENFILES, 0, 0);
+			position = nbFile - 1;
+		}
+
+		::SendMessage(nppData._nppHandle, NPPM_ACTIVATEDOC, 0, position);
+	}
+}
+
+
+void addEditFile(TCHAR *filename, int index, int bufferID)
+{
+	EditFile *editFile = new EditFile(index, filename, 0, bufferID);
+	editFiles[bufferID] = editFile;
+	
+	tstring filenameString = filename;
+	filenameMap[filenameString] = editFile;
+
+}
 
 void addEditFile(int bufferID)
 {
 	TCHAR filePath[MAX_PATH];
 	::SendMessage(nppData._nppHandle, NPPM_GETFULLPATHFROMBUFFERID, bufferID, reinterpret_cast<LPARAM>(filePath));
 	int index = ::SendMessage(nppData._nppHandle, NPPM_GETPOSFROMBUFFERID, bufferID, reinterpret_cast<LPARAM>(filePath));
-	editFiles[bufferID] = new EditFile(index, filePath, 0, bufferID);
-
+	addEditFile(filePath, index, bufferID);	
 }
 
 void removeEditFile(int bufferID)
 {
+	tstring filename = editFiles[bufferID]->getFullFilename();
+	
+	// Free the EditFile
+	delete editFiles[bufferID];
+
+	// Erase the EditFile from the two lookup maps
+	filenameMap.erase(filename);
 	editFiles.erase(bufferID);
 }
 
 void updateCurrentStatus(FileStatus status)
 {
 	int bufferID = ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
+	if (editFiles.find(bufferID) == editFiles.end())
+	{
+		addEditFile(bufferID);
+	}
+
 	editFiles[bufferID]->setFileStatus(status);
 }
 
+
+struct DeleteObject {
+	template<typename T>
+	void operator()(const T *p) const
+	{
+		delete p;
+	}
+};
+
+
 void clearEditFiles()
 {
+	for(EditFileContainer::iterator i = editFiles.begin(); i != editFiles.end(); i++)
+		delete i->second;
 }
 
 void doAbout()

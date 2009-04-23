@@ -171,7 +171,7 @@ void SwitchDialog::setFilenames(TCHAR **filenames, int nbFiles)
 }
 
 
-void SwitchDialog::doDialog(EditFileContainer &editFiles)
+void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab)
 {
 	_editFiles = editFiles;
 	_nbFiles = _editFiles.size();
@@ -222,7 +222,18 @@ void SwitchDialog::doDialog(EditFileContainer &editFiles)
 		_listboxRect.right = dialogRect.right - _listboxRect.right;
 		_listboxRect.bottom = dialogRect.bottom - _listboxRect.bottom;
 		
+		
+
 		setupListView();
+
+		// If the sort order won't be done later anyway, set the default
+		if (!_options->resetSortOrder)
+		{
+			if (_options->defaultSortOrder == ALWAYSREMEMBER)
+                _listView.sortItems(_options->activeSortOrder);
+			else
+				_listView.sortItems(_options->defaultSortOrder);
+		}
 
 		// If the position and dimensions have not been set (from disk-loaded settings)
 		if (_dialogX == -1)
@@ -235,7 +246,7 @@ void SwitchDialog::doDialog(EditFileContainer &editFiles)
 	}
     
 	
-	if (_options->emulateCtrlTab)
+	if (_options->emulateCtrlTab && !ignoreCtrlTab)
 	{
 			_overrideCtrlTab = FALSE;
 			SHORT ctrlState = ::GetKeyState(VK_CONTROL) & 0x80;

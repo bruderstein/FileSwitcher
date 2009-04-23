@@ -49,7 +49,7 @@ public:
 		_options = options;
 	};
 
-   	void doDialog(EditFileContainer &editFiles);
+   	void doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab);
 
 	void setFilenames(TCHAR **filenames, int nbFiles);
 	void setWindowPosition(int x, int y, int width, int height);

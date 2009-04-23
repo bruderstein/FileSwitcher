@@ -14,10 +14,10 @@
 
 enum SortOrder
 {
-	ALWAYSREMEMBER,
-	FILENAME,
-	PATH,
-	INDEX
+	ALWAYSREMEMBER	= -1,
+	FILENAME		= 0,
+	PATH			= 1,
+	INDEX			= 2
 };
 
 

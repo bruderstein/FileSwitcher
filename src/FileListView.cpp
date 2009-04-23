@@ -56,21 +56,26 @@ int CALLBACK FileListView::listViewComparer(LPARAM lParam1, LPARAM lParam2, LPAR
 	int returnValue;
 	switch(LOBYTE(lParamSort))
 	{
-		case 0:
-			returnValue = _tcsicmp(edit1->getFilename(), edit2->getFilename());
-			break;
-
-		case 1:
+		
+		case PATH:
 			returnValue = _tcsicmp(edit1->getPath(), edit2->getPath());
+			if (returnValue == 0)
+				returnValue = _tcsicmp(edit1->getFilename(), edit2->getFilename());
+
 			break;
 
-		case 2:
+		case INDEX:
 			returnValue = edit1->getIndex() - edit2->getIndex();
 			break;
 	
+
+		case FILENAME:
 		default:
-			returnValue = 0;
+			returnValue = _tcsicmp(edit1->getFilename(), edit2->getFilename());
+			if (returnValue == 0)
+				returnValue = _tcsicmp(edit1->getPath(), edit2->getPath());
 			break;
+
 	}
 	
 	if (lParamSort & REVERSE_SORT_ORDER)
