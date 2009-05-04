@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 
 #include "SearchOptions.h"
 
@@ -16,15 +17,20 @@ class EditFile
 
 public:
     EditFile(void);
-	EditFile(int index, CONST TCHAR *filename, int searchFlags, int bufferID);
+	EditFile(int view, int index, CONST TCHAR *filename, int searchFlags, int bufferID);
 	~EditFile(void);
 	
 	
 	TCHAR* getFilename();
 	TCHAR* getFullFilename();
 	TCHAR* getPath();
+	TCHAR* getIndexString();
 	int getIndex();
-	void setIndex(int index);
+	int getView();
+	void setIndex(int view, int index);
+	
+	void clearIndexes();
+	
 	int getBufferID();
 	FileStatus getFileStatus();
 	void setFileStatus(FileStatus status);
@@ -36,7 +42,12 @@ private:
 	TCHAR* _filename;
 	TCHAR* _display;
 	FileStatus _fileStatus;
-	int _index;
+	
 	bool _dataSet;
 	int _bufferID;
+	int _view;
+	int _index;
+
+	TCHAR* _indexString;
+
 };

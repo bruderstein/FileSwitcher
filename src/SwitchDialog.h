@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "resource.h" 
 #include "FileSwitcher.h"
 #include "FileListView.h"
+#include "ConfigDialog.h"
 
 class SwitchDialog : public StaticDialog
 {
@@ -36,9 +37,10 @@ public:
     
 	
 
-	void init(HINSTANCE hInst, NppData nppData, struct options_t *options, std::map<int, TCHAR *> *typedForFile)
+	void init(HINSTANCE hInst, NppData nppData, struct options_t *options, std::map<int, TCHAR *> *typedForFile, ConfigDialog *configDlg)
 	{
 		_nppData = nppData;
+		_configDlg = configDlg;
 		Window::init(hInst, nppData._nppHandle);
 
 		// Flag that the dimensions and position have not been set
@@ -50,8 +52,6 @@ public:
 	};
 
    	void doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab);
-
-	void setFilenames(TCHAR **filenames, int nbFiles);
 	void setWindowPosition(int x, int y, int width, int height);
 	void getWindowPosition(RECT &rc);
 	int getCurrentSortOrder(void);
@@ -70,15 +70,20 @@ private:
 	HWND			_hEditbox;
 	HWND			_hListView;
 
+	/* ConfigDialog for opening config dialog from switch dialog */
+	ConfigDialog	*_configDlg;
+
 	FileListView    _listView;
 
 	/* File/buffer info */
 	EditFileContainer _editFiles;
 	int _nbFiles;
 
-	/* Rectangles for current size */
+	/* Rectangles for current size / position */
 	RECT _okButtonRect;
 	RECT _cancelButtonRect;
+	RECT _optionsButtonRect;
+
 	RECT _listboxRect;
 	RECT _editboxRect;
 
@@ -96,6 +101,10 @@ private:
 
 	/* Options structure */
 	struct options_t *_options;
+	
+	/* If Ctrl-Tab has been activated, and the sort order has been overridden to Index*/
+	BOOL _haveOverriddenSortOrder;
+
 
 	/* Record of what was typed in for each file */
 	std::map<int, TCHAR *> *_typedForFile;
@@ -115,10 +124,11 @@ private:
 	void updateWindowPosition(void);
 	void switchToSelectedBuffer(void);
 	void setupListView(void);
+	void setupColumnWidths(EditFileContainer &editFiles);
 
 	/* Constants */
 	static const int SEARCH_STRING_BUFFER_MAX = 255;
-
+	static const int COLUMN_PADDING = 30;
 
 	
 	

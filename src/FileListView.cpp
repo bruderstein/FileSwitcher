@@ -24,6 +24,8 @@ void FileListView::init(options_t *options, HINSTANCE hInst, HWND hParent, HWND 
 		_bmpSortDown = (HBITMAP)::LoadImage(_hInstance, MAKEINTRESOURCE(IDB_SORTDOWN), IMAGE_BITMAP, 0, 0, LR_LOADMAP3DCOLORS);
 	}
 
+	_currentView = 0;
+	_options = options;
 
 	ListView_SetImageList(_hListView, ghImgList, LVSIL_SMALL);
 	updateHeader();
@@ -54,6 +56,7 @@ int CALLBACK FileListView::listViewComparer(LPARAM lParam1, LPARAM lParam2, LPAR
 
 		
 	int returnValue;
+
 	switch(LOBYTE(lParamSort))
 	{
 		
@@ -65,7 +68,13 @@ int CALLBACK FileListView::listViewComparer(LPARAM lParam1, LPARAM lParam2, LPAR
 			break;
 
 		case INDEX:
-			returnValue = edit1->getIndex() - edit2->getIndex();
+			
+			returnValue = edit1->getView() - edit2->getView();
+			if (returnValue == 0)
+			{
+				returnValue = edit1->getIndex() - edit2->getIndex();
+			}
+
 			break;
 	
 
@@ -100,29 +109,43 @@ void FileListView::sortItems()
 	ListView_SortItems(_hListView, FileListView::listViewComparer, _currentSortOrder);
 }
 
+
+void FileListView::setCurrentView(int currentView)
+{
+	_currentView = currentView;
+}
+
 LRESULT FileListView::notify(WPARAM wParam, LPARAM lParam)
 {
+	TCHAR tmp[20];
+	int index;
 	switch (reinterpret_cast<LPNMHDR>(lParam)->code)
 	{
 		case LVN_GETDISPINFO:
 		{
-			NMLVDISPINFO* plvdi = reinterpret_cast<NMLVDISPINFO*>(lParam);    
+			NMLVDISPINFO* plvdi = reinterpret_cast<NMLVDISPINFO*>(lParam); 
+			EditFile *editFile = reinterpret_cast<EditFile*>(plvdi->item.lParam);
+
 			switch (plvdi->item.iSubItem)
 			{
 				case 0:
-					plvdi->item.pszText = reinterpret_cast<EditFile*>(plvdi->item.lParam)->getFilename();
+					plvdi->item.pszText = editFile->getFilename();
 					break;
 			        
 				case 1:
-					plvdi->item.pszText = reinterpret_cast<EditFile*>(plvdi->item.lParam)->getPath();
+					plvdi->item.pszText = editFile->getPath();
 					break;
 			
 				case 2:
-					TCHAR tmp[16];
-					_itot(reinterpret_cast<EditFile*>(plvdi->item.lParam)->getIndex() + 1, tmp, 10);
-					plvdi->item.pszText = tmp;
+					index = editFile->getIndex();
+					
+
+
+
+					plvdi->item.pszText = editFile->getIndexString();
 					break;
-			
+				
+
 				default:
 					break;
 			}
@@ -138,6 +161,9 @@ LRESULT FileListView::notify(WPARAM wParam, LPARAM lParam)
 				_currentSortOrder = pnmv->iSubItem;
 
 			sortItems(_currentSortOrder);
+
+			_options->activeSortOrder = _currentSortOrder;
+
 			return 0;
 		}
 
@@ -146,6 +172,11 @@ LRESULT FileListView::notify(WPARAM wParam, LPARAM lParam)
 			::SendMessage(_hParentWindow, FSM_ITEMDBLCLK, 0, 0);
 			return 0;
 		}
+
+		case NM_SETFOCUS:
+			::SendMessage(_hParentWindow, FSN_LISTVIEWSETFOCUS, 0, 0);
+			break;
+
 	}
 }
 
@@ -169,7 +200,7 @@ void FileListView::updateHeader(void)
 			{
 				hdItem.mask |= HDI_BITMAP;
 				hdItem.fmt  |= (HDF_BITMAP | HDF_BITMAP_ON_RIGHT);
-				hdItem.hbm   = (_currentSortOrder & REVERSE_SORT_ORDER) ? _bmpSortUp : _bmpSortDown;
+				hdItem.hbm   = (_currentSortOrder & REVERSE_SORT_ORDER) ? _bmpSortDown : _bmpSortUp;
 			}
 			
 		}
@@ -178,7 +209,7 @@ void FileListView::updateHeader(void)
 			hdItem.fmt &= ~(HDF_SORTUP | HDF_SORTDOWN);
 			if (i == LOBYTE(_currentSortOrder))
 			{
-				hdItem.fmt |= (_currentSortOrder & REVERSE_SORT_ORDER) ? HDF_SORTUP : HDF_SORTDOWN;
+				hdItem.fmt |= (_currentSortOrder & REVERSE_SORT_ORDER) ? HDF_SORTDOWN : HDF_SORTUP;
 			}
 		}
 		Header_SetItem(_hHeader, i, &hdItem);

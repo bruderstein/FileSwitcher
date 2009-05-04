@@ -9,6 +9,20 @@ void ConfigDialog::doDialog()
     if (!isCreated())
         create(IDD_CONFIGDIALOG);
 
+	_isModal = FALSE;
+	goToCenter();
+}
+
+void ConfigDialog::doModal(HWND parent)
+{
+	_isModal = TRUE;
+	DialogBoxParam(_hInst, MAKEINTRESOURCE(IDD_CONFIGDIALOG), parent, ConfigDialog::dlgProc, reinterpret_cast<LPARAM>(this));
+	_isModal = FALSE;
+}
+
+
+void ConfigDialog::initialiseOptions()
+{
 	if (_options->searchFlags & SEARCHFLAG_CASESENSITIVE)
 		::SendDlgItemMessage(_hSelf, IDC_CHECKCASE, BM_SETCHECK, BST_CHECKED, 0);
 	else
@@ -20,7 +34,6 @@ void ConfigDialog::doDialog()
 		::SendDlgItemMessage(_hSelf, IDC_CHECKANYPART, BM_SETCHECK, BST_UNCHECKED, 0);
 
 
-	::SendDlgItemMessage(_hSelf, IDC_CHECKCTRLTAB, BM_SETCHECK, _options->emulateCtrlTab ? BST_CHECKED : BST_UNCHECKED, 0);
 
 
 
@@ -58,6 +71,9 @@ void ConfigDialog::doDialog()
 		case ALWAYSREMEMBER:
 		default:
 			::SendDlgItemMessage(_hSelf, IDC_RADIOSORTREMEMBER, BM_SETCHECK, BST_CHECKED, 0);
+			EnableWindow(GetDlgItem(_hSelf, IDC_CHECKRESETSORTORDER), FALSE);
+			EnableWindow(GetDlgItem(_hSelf, IDC_CHECKSORTDESCENDING), FALSE);
+			
 			break;    
 	}
 
@@ -72,8 +88,51 @@ void ConfigDialog::doDialog()
 		::SendDlgItemMessage(_hSelf, IDC_CHECKRESETSORTORDER, BM_SETCHECK, BST_UNCHECKED, 0);
 
 
-	goToCenter();
+	if (_options->onlyUseCurrentView)
+		::SendDlgItemMessage(_hSelf, IDC_CHECKONLYCURRENTVIEW, BM_SETCHECK, BST_CHECKED, 0);
+	else
+		::SendDlgItemMessage(_hSelf, IDC_CHECKONLYCURRENTVIEW, BM_SETCHECK, BST_UNCHECKED, 0);
+
+
+	if (_options->overrideSortWhenTabbing)
+	{
+		::SendDlgItemMessage(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING, BM_SETCHECK, BST_CHECKED, 0);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), TRUE);
+	}
+	else
+	{
+		::SendDlgItemMessage(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING, BM_SETCHECK, BST_UNCHECKED, 0);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), FALSE);
+	}
+
+	if (_options->revertSortWhenTabbing)
+		::SendDlgItemMessage(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING, BM_SETCHECK, BST_CHECKED, 0);
+	else
+		::SendDlgItemMessage(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING, BM_SETCHECK, BST_UNCHECKED, 0);
+
+
+	if (_options->autoSizeColumns)
+	{
+		::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZECOLUMNS, BM_SETCHECK, BST_CHECKED, 0);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKAUTOSIZEWINDOW), TRUE);
+	}
+	else
+	{
+		::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZECOLUMNS, BM_SETCHECK, BST_UNCHECKED, 0);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKAUTOSIZEWINDOW), FALSE);
+	}
+
+
+	if (_options->autoSizeWindow)
+		::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZEWINDOW, BM_SETCHECK, BST_CHECKED, 0);
+	else
+		::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZEWINDOW, BM_SETCHECK, BST_UNCHECKED, 0);
+
+	
+
 }
+
+
 
 
 BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
@@ -84,17 +143,59 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 	{
         case WM_INITDIALOG :
 		{
+			initialiseOptions();
 			return TRUE;
 		}
 		
-
+	
 
 		case WM_COMMAND : 
 		{
 			
 				
-				switch (wParam)
+				switch (LOWORD(wParam))
 				{
+					case IDC_RADIOSORTREMEMBER:
+					case IDC_RADIOSORTINDEX:
+					case IDC_RADIOSORTPATH:
+					case IDC_RADIOSORTFILENAME:
+						result = ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTREMEMBER, BM_GETCHECK, 0, 0);
+						if (BST_CHECKED == result)
+						{
+							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKRESETSORTORDER), FALSE);
+							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKSORTDESCENDING), FALSE);
+						}
+						else
+						{
+							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKRESETSORTORDER), TRUE);
+							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKSORTDESCENDING), TRUE);
+						}
+
+						break;
+
+					case IDC_CHECKOVERRIDESORTWHENTABBING:
+						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING, BM_GETCHECK, 0, 0);
+						if (BST_CHECKED == result)
+						{
+							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), TRUE);
+						}
+						else
+						{
+							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), FALSE);
+						}
+						break;
+
+					case IDC_CHECKAUTOSIZECOLUMNS:
+						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZECOLUMNS, BM_GETCHECK, 0, 0);
+						if (BST_CHECKED == result)
+						{
+							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKAUTOSIZEWINDOW), TRUE);
+						}
+						else
+						{
+							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKAUTOSIZEWINDOW), FALSE);
+						}
+						break;
 					case IDOK :
 						_options->searchFlags = 0;
 
@@ -147,22 +248,43 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 						else
 							_options->resetSortOrder = FALSE;
 
+						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING, BM_GETCHECK, 0, 0);
+						if (BST_CHECKED == result)
+							_options->overrideSortWhenTabbing = TRUE;
+						else
+							_options->overrideSortWhenTabbing = FALSE;
+
+						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING, BM_GETCHECK, 0, 0);
+						if (BST_CHECKED == result)
+							_options->revertSortWhenTabbing = TRUE;
+						else
+							_options->revertSortWhenTabbing = FALSE;
+
+						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKONLYCURRENTVIEW, BM_GETCHECK, 0, 0);
+						if (BST_CHECKED == result)
+							_options->onlyUseCurrentView = TRUE;
+						else
+							_options->onlyUseCurrentView = FALSE;
+
+						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZECOLUMNS, BM_GETCHECK, 0, 0);
+						if (BST_CHECKED == result)
+							_options->autoSizeColumns = TRUE;
+						else
+							_options->autoSizeColumns = FALSE;
 
 
-
-
-
-
-
-
-
-
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKCTRLTAB, BM_GETCHECK, 0, 0);
-						_options->emulateCtrlTab = (BST_CHECKED == result) ? TRUE : FALSE;
+						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZEWINDOW, BM_GETCHECK, 0, 0);
+						if (BST_CHECKED == result)
+							_options->autoSizeWindow = TRUE;
+						else
+							_options->autoSizeWindow = FALSE;
 
 
 					case IDCANCEL :
-						display(FALSE);
+						if (_isModal)
+							EndDialog(hWnd, 0);
+						else
+							display(FALSE);
 						return TRUE;
 
 					default :

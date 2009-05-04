@@ -16,6 +16,7 @@ public:
 	};
 
    	void doDialog();
+	void doModal(HWND parent);
 
 	void setOptions(int options);
 	int getOptions(void);
@@ -29,6 +30,10 @@ private:
 	NppData			_nppData;
     HWND			_HSource;
 	
+	BOOL			_isModal;
+
 	struct options_t *_options;
+
+	void ConfigDialog::initialiseOptions();
 
 };

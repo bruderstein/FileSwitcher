@@ -27,6 +27,7 @@ public:
 	void sortItems();
 	void sortItems(int currentSortOrder);
 	int getCurrentSortOrder(void);
+	void setCurrentView(int currentView);
 
 	static int CALLBACK listViewComparer(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 
@@ -40,10 +41,12 @@ private:
 	HINSTANCE	_hInstance;
 
 	int			_currentSortOrder;
-	
+	int			_currentView;
 
 	HBITMAP     _bmpSortUp;
 	HBITMAP     _bmpSortDown;
+
+	options_t	*_options;
 
 	void updateHeader(void);
 

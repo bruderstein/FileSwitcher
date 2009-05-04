@@ -13,6 +13,8 @@
 #include <map>
 #include <string>
 
+
+
 #ifdef _MANAGED
 #pragma managed(push, off)
 #endif
@@ -36,9 +38,9 @@ struct options_t	options;
 
 
 /* Maps for lookups */
-EditFileContainer			editFiles;
-map<tstring, EditFile*>		filenameMap;
-map<int, TCHAR *>			typedForFile;
+EditFileContainer		editFiles;
+FilenameContainer		filenameMap;
+map<int, TCHAR *>		typedForFile;
 
 
 /* Dialogs */
@@ -62,7 +64,7 @@ void doConfig();
 void loadSettings();
 void saveSettings();
 void addEditFile(int bufferID);
-void addEditFile(TCHAR *filename, int index, int bufferID);
+void addEditFile(TCHAR *filename, int view, int index, int bufferID);
 void removeEditFile(int bufferID);
 void updateCurrentStatus(FileStatus status);
 void clearEditFiles();
@@ -142,7 +144,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 extern "C" __declspec(dllexport) void setInfo(NppData notepadPlusData)
 {
 	nppData = notepadPlusData;
-	switchDlg.init((HINSTANCE)g_hModule, nppData, &options, &typedForFile);
+	switchDlg.init((HINSTANCE)g_hModule, nppData, &options, &typedForFile, &configDlg);
 	aboutDlg.init((HINSTANCE)g_hModule, nppData);
 	configDlg.init((HINSTANCE)g_hModule, nppData, &options);
 
@@ -171,6 +173,21 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 {
 	switch(notifyCode->nmhdr.code)
 	{
+		case NPPN_READY:
+			ShortcutKey shKey;
+
+			if (::SendMessage(nppData._nppHandle, NPPM_GETSHORTCUTBYCMDID, funcItem[2]._cmdID, reinterpret_cast<LPARAM>(&shKey)))
+			{
+				if (shKey._key == 0x09  // TAB
+					&& shKey._isCtrl 
+					&& !(shKey._isAlt)
+					&& !(shKey._isShift))
+				{
+					options.emulateCtrlTab = true;
+				}
+			}
+			break;
+
 		case NPPN_FILECLOSED:
 			if (typedForFile.find(notifyCode->nmhdr.idFrom) != typedForFile.end())
 			{
@@ -192,6 +209,10 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 				{
 					options.emulateCtrlTab = TRUE;
 				}
+				else
+				{
+					options.emulateCtrlTab = FALSE;
+				}
 			}
 			break;
 
@@ -203,12 +224,15 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 
 		case NPPN_FILEOPENED:
 			addEditFile(notifyCode->nmhdr.idFrom);
+
 			break;
 	}
 
 	if (notifyCode->nmhdr.hwndFrom == nppData._scintillaMainHandle 
 		|| notifyCode->nmhdr.hwndFrom == nppData._scintillaSecondHandle)
 	{
+		BOOL readonly = ::SendMessage((HWND)notifyCode->nmhdr.hwndFrom, SCI_GETREADONLY, 0, 0);
+
 		switch (notifyCode->nmhdr.code)
 		{
 
@@ -241,39 +265,84 @@ extern "C" __declspec(dllexport) BOOL isUnicode()
 void showSwitchDialog(BOOL ignoreCtrlTab)
 {
 	
-	int nbFile = (int)::SendMessage(nppData._nppHandle, NPPM_GETNBOPENFILES, 0, 0);
+	int nbFile[2];
+	nbFile[0] = (int)::SendMessage(nppData._nppHandle, NPPM_GETNBOPENFILES, 0, PRIMARY_VIEW);
+	nbFile[1] = (int)::SendMessage(nppData._nppHandle, NPPM_GETNBOPENFILES, 0, SECOND_VIEW);
 
-	TCHAR **fileNames = (TCHAR **)new TCHAR*[nbFile];
-	for (int i = 0 ; i < nbFile ; i++)
-	{
-		fileNames[i] = new TCHAR[MAX_PATH];
-	}
+	int selectedTab[2];
+	selectedTab[0] = (INT)::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDOCINDEX, 0, MAIN_VIEW);
+	selectedTab[1] = (INT)::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDOCINDEX, 0, SUB_VIEW);
 
-	if (::SendMessage(nppData._nppHandle, NPPM_GETOPENFILENAMES, reinterpret_cast<WPARAM>(fileNames), static_cast<LPARAM>(nbFile)))
-	{
-
-		int bufferID;
-		tstring filenameString;
-		for(int position = 0; position < nbFile - 1; position++)
-		{
-			
-			filenameString = fileNames[position];
-			if (filenameMap.find(filenameString) == filenameMap.end())
-			{
-				bufferID = ::SendMessage(nppData._nppHandle, NPPM_GETBUFFERIDFROMPOS, position, 0);	
-				addEditFile(fileNames[position], position, bufferID);
-			}
-			else 
-			{
-				filenameMap[filenameString]->setIndex(position);
-			}
-			
-		}
-
-		switchDlg.doDialog(editFiles, ignoreCtrlTab);
-		
-	}
 	
+	// Clear the view/index arrays in each EditFile
+	for(EditFileContainer::iterator iter = editFiles.begin(); iter != editFiles.end(); iter++)
+	{
+		iter->second->clearIndexes();
+	}
+
+	
+	for(int view = 0; view < 2; view++)
+	{
+		if (nbFile[view] && selectedTab[view] >= 0)
+		{
+			TCHAR **fileNames = (TCHAR **)new TCHAR*[nbFile[view]];
+			for (int i = 0 ; i < nbFile[view] ; i++)
+			{
+				fileNames[i] = new TCHAR[MAX_PATH];
+			}
+
+			if (::SendMessage(nppData._nppHandle, view ? NPPM_GETOPENFILENAMESSECOND : NPPM_GETOPENFILENAMESPRIMARY, 
+							reinterpret_cast<WPARAM>(fileNames), static_cast<LPARAM>(nbFile[view])))
+			{
+
+				int bufferID;
+				tstring filenameString;
+				for(int position = 0; position < nbFile[view]; position++)
+				{
+					
+					filenameString = fileNames[position];
+					FilenameContainer::iterator filenameIterator = filenameMap.lower_bound(filenameString);
+					FilenameContainer::iterator upperBoundIterator = filenameMap.upper_bound(filenameString);
+					
+					while(filenameIterator != upperBoundIterator
+						  && filenameIterator->second->getView() >= 0)
+						  filenameIterator++;
+
+				
+
+					if (filenameIterator == filenameMap.end()
+						|| filenameIterator->first != filenameString)
+					{
+						bufferID = ::SendMessage(nppData._nppHandle, NPPM_GETBUFFERIDFROMPOS, position, view);	
+						addEditFile(fileNames[position], view, position, bufferID);
+					}
+					else 
+					{
+						
+						filenameIterator->second->setIndex(view, position);
+						/*
+						if (filenameMap[filenameString]->inView(0)
+							&& filenameMap[filenameString]->inView(1))
+						{
+							int primaryBufferID = ::SendMessage(nppData._nppHandle, NPPM_GETBUFFERIDFROMPOS, filenameMap[filenameString]->getIndex(0), 0);
+							int secondaryBufferID = ::SendMessage(nppData._nppHandle, NPPM_GETBUFFERIDFROMPOS, filenameMap[filenameString]->getIndex(1), 1);
+							if (primaryBufferID == secondaryBufferID)
+							{
+								primaryBufferID++;
+							}
+						}
+						*/
+					}
+					
+				}
+
+
+				
+			}
+		}
+	}
+
+	switchDlg.doDialog(editFiles, ignoreCtrlTab);
 	
 }
 
@@ -320,7 +389,7 @@ void showSwitchDialogPrevious()
 		else
 		{
 			int nbFile = (int)::SendMessage(nppData._nppHandle, NPPM_GETNBOPENFILES, 0, 0);
-			position = nbFile - 1;
+			position = nbFile - 2;
 		}
 
 		::SendMessage(nppData._nppHandle, NPPM_ACTIVATEDOC, 0, position);
@@ -328,13 +397,23 @@ void showSwitchDialogPrevious()
 }
 
 
-void addEditFile(TCHAR *filename, int index, int bufferID)
+void addEditFile(TCHAR *filename, int view, int index, int bufferID)
 {
-	EditFile *editFile = new EditFile(index, filename, 0, bufferID);
-	editFiles[bufferID] = editFile;
+	EditFile *editFile = new EditFile(view, index, filename, 0, bufferID);
+	
+	multimap<tstring, EditFile*>::iterator iter = filenameMap.find(filename);
+	
+	FileStatus status = SAVED;
+	
+	if (iter != filenameMap.end())
+		status = iter->second->getFileStatus();
+	
+	editFile->setFileStatus(status);
+
+	editFiles.insert(EditFileContainer::value_type(bufferID, editFile));
 	
 	tstring filenameString = filename;
-	filenameMap[filenameString] = editFile;
+	filenameMap.insert(multimap<tstring, EditFile*>::value_type(filenameString, editFile));
 
 }
 
@@ -343,19 +422,31 @@ void addEditFile(int bufferID)
 	TCHAR filePath[MAX_PATH];
 	::SendMessage(nppData._nppHandle, NPPM_GETFULLPATHFROMBUFFERID, bufferID, reinterpret_cast<LPARAM>(filePath));
 	int index = ::SendMessage(nppData._nppHandle, NPPM_GETPOSFROMBUFFERID, bufferID, reinterpret_cast<LPARAM>(filePath));
-	addEditFile(filePath, index, bufferID);	
+	
+	addEditFile(filePath, VIEW(index), INDEX(index), bufferID);	
 }
 
 void removeEditFile(int bufferID)
 {
-	tstring filename = editFiles[bufferID]->getFullFilename();
 	
+	tstring filename;
 	// Free the EditFile
-	delete editFiles[bufferID];
+	EditFileContainer::iterator iter = editFiles.find(bufferID);
+	if (iter != editFiles.end())
+	{
 
-	// Erase the EditFile from the two lookup maps
-	filenameMap.erase(filename);
-	editFiles.erase(bufferID);
+		filename = iter->second->getFullFilename();
+		do {
+			delete iter->second;
+			++iter;
+		} while (iter != editFiles.end() 
+			     && iter->second->getBufferID() == bufferID);
+
+
+		// Erase the EditFile from the two lookup maps
+		filenameMap.erase(filename);
+		editFiles.erase(bufferID);
+	}
 }
 
 void updateCurrentStatus(FileStatus status)
@@ -366,7 +457,13 @@ void updateCurrentStatus(FileStatus status)
 		addEditFile(bufferID);
 	}
 
-	editFiles[bufferID]->setFileStatus(status);
+	EditFileContainer::iterator iter = editFiles.lower_bound(bufferID);
+	EditFileContainer::iterator ub = editFiles.upper_bound(bufferID);
+
+	do {
+		iter->second->setFileStatus(status);
+		++iter;
+	} while (iter != ub);
 }
 
 
@@ -392,8 +489,7 @@ void doAbout()
 
 void doConfig()
 {
-	configDlg.doDialog();
-	
+	configDlg.doModal(nppData._nppHandle);
 }
 
 
@@ -433,11 +529,18 @@ void loadSettings(void)
 	if (options.searchFlags == 0)
 		options.searchFlags = SEARCHFLAG_INCLUDEFILENAME;
 
-	options.emulateCtrlTab = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_EMULATECTRLTAB, 0, iniFilePath);
+	// This will be set later, when we check the shortcut key of the "Switch to Next" command
+	options.emulateCtrlTab = FALSE;
 
 	options.resetSortOrder = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_RESETSORT, 0, iniFilePath);
 	options.defaultSortOrder = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_DEFAULTSORT, 0, iniFilePath);
 	options.activeSortOrder = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_ACTIVESORT, 0, iniFilePath);
+	options.overrideSortWhenTabbing = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_OVERRIDESORT, 0, iniFilePath);
+	options.revertSortWhenTabbing = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_REVERTSORT, 0, iniFilePath);
+	options.onlyUseCurrentView = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_ONLYUSECURRENTVIEW, 0, iniFilePath);
+	options.autoSizeColumns = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_AUTOSIZECOLUMNS, 0, iniFilePath);
+	options.autoSizeWindow = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_AUTOSIZEWINDOW, 0, iniFilePath);
+
 	
 }
 
@@ -449,7 +552,6 @@ void saveSettings(void)
 	if (switchDlg.isCreated())
 	{
 		RECT rc;
-		TCHAR temp[16];
 		switchDlg.getWindowPosition(rc);
 
 		_itot(rc.left, temp, 10);
@@ -465,16 +567,15 @@ void saveSettings(void)
 		::WritePrivateProfileString(WINDOW_SETTINGS, KEY_WINDOWHEIGHT, temp, iniFilePath);
 
 
-		_itot(switchDlg.getCurrentSortOrder(), temp, 10);
-		::WritePrivateProfileString(SORT_SETTINGS, KEY_ACTIVESORT, temp, iniFilePath);
+		
 
 	}
 
+	_itot(options.activeSortOrder, temp, 10);
+	::WritePrivateProfileString(SORT_SETTINGS, KEY_ACTIVESORT, temp, iniFilePath);
+
 	_itot(options.searchFlags, temp, 10);
 	::WritePrivateProfileString(SEARCH_SETTINGS, KEY_SEARCHFLAGS, temp, iniFilePath);
-
-	_itot(options.emulateCtrlTab, temp, 10);
-	::WritePrivateProfileString(GENERAL_SETTINGS, KEY_EMULATECTRLTAB, temp, iniFilePath);
 
 	_itot(options.defaultSortOrder, temp, 10);
 	::WritePrivateProfileString(SORT_SETTINGS, KEY_DEFAULTSORT, temp, iniFilePath);
@@ -482,7 +583,22 @@ void saveSettings(void)
 	_itot(options.resetSortOrder, temp, 10);
 	::WritePrivateProfileString(SORT_SETTINGS, KEY_RESETSORT, temp, iniFilePath);
 
-	
+	_itot(options.overrideSortWhenTabbing, temp, 10);
+	::WritePrivateProfileString(SORT_SETTINGS, KEY_OVERRIDESORT, temp, iniFilePath);
+
+	_itot(options.revertSortWhenTabbing, temp, 10);
+	::WritePrivateProfileString(SORT_SETTINGS, KEY_REVERTSORT, temp, iniFilePath);
+
+	_itot(options.onlyUseCurrentView, temp, 10);
+	::WritePrivateProfileString(GENERAL_SETTINGS, KEY_ONLYUSECURRENTVIEW, temp, iniFilePath);
+
+	_itot(options.autoSizeColumns, temp, 10);
+	::WritePrivateProfileString(GENERAL_SETTINGS, KEY_AUTOSIZECOLUMNS, temp, iniFilePath);
+
+	_itot(options.autoSizeWindow, temp, 10);
+	::WritePrivateProfileString(GENERAL_SETTINGS, KEY_AUTOSIZEWINDOW, temp, iniFilePath);
+
+
 }
 
 

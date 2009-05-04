@@ -24,13 +24,17 @@ extern HIMAGELIST ghImgList;
 #define SEARCH_SETTINGS		_T("SearchSettings")
 #define KEY_SEARCHFLAGS		_T("searchFlags")
 
-#define GENERAL_SETTINGS    _T("General")
-#define KEY_EMULATECTRLTAB  _T("emulateCtrlTab")
-
-#define SORT_SETTINGS       _T("Sort")
-#define KEY_DEFAULTSORT     _T("default")
-#define KEY_ACTIVESORT      _T("active")
-#define KEY_RESETSORT       _T("reset")
+#define GENERAL_SETTINGS		_T("General")
+#define KEY_EMULATECTRLTAB		_T("emulateCtrlTab")
+#define KEY_ONLYUSECURRENTVIEW _T("onlyUseCurrentView")
+#define KEY_AUTOSIZECOLUMNS		_T("autoSizeColumns")
+#define KEY_AUTOSIZEWINDOW		_T("autoSizeWindow")
+#define SORT_SETTINGS			_T("Sort")
+#define KEY_DEFAULTSORT			_T("default")
+#define KEY_ACTIVESORT			_T("active")
+#define KEY_RESETSORT			_T("reset")
+#define KEY_OVERRIDESORT		_T("overrideSort")
+#define KEY_REVERTSORT			_T("revertSort")
 
 #define DIALOGY_DEFAULT			100
 #define DIALOGWIDTH_DEFAULT		400
@@ -39,10 +43,20 @@ extern HIMAGELIST ghImgList;
 #define FSM_START			(WM_APP + 1600)
 #define FSM_ITEMDBLCLK		(FSM_START + 1)
 
-typedef std::map<int, EditFile*>	EditFileContainer;
+#define FSN_START           (FSM_START + 100)
+#define FSN_LISTVIEWSETFOCUS (FSN_START + 1)
+
+
+#define INDEX(x)           (x & 0x3FFFFFFF)
+#define VIEW(x)			   ((x & 0xC0000000) >> 30)
 
 
 typedef  std::basic_string<TCHAR>	tstring;
+
+typedef std::multimap<int, EditFile*>			EditFileContainer;
+typedef std::multimap<tstring, EditFile*>		FilenameContainer;
+
+
 
 
 struct options_t
@@ -52,6 +66,11 @@ struct options_t
 	int defaultSortOrder;
 	int activeSortOrder;
 	BOOL resetSortOrder;
+	BOOL overrideSortWhenTabbing;
+	BOOL revertSortWhenTabbing;
+	BOOL onlyUseCurrentView;
+	BOOL autoSizeColumns;
+	BOOL autoSizeWindow;
 };
 
 
