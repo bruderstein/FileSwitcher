@@ -49,6 +49,8 @@ public:
 		_typedForFile = typedForFile;
 
 		_options = options;
+		_displayingOptionsDialog = FALSE;
+
 	};
 
    	void doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab);
@@ -105,6 +107,8 @@ private:
 	/* If Ctrl-Tab has been activated, and the sort order has been overridden to Index*/
 	BOOL _haveOverriddenSortOrder;
 
+	/* If we're displaying the options dialog from the switch dialog, hence don't hide the switch dialog */
+	BOOL _displayingOptionsDialog;
 
 	/* Record of what was typed in for each file */
 	std::map<int, TCHAR *> *_typedForFile;
@@ -121,6 +125,7 @@ private:
 	void moveSelectionDown(BOOL wrap);
 	void moveSelectionTop(void);
 	void moveSelectionBottom(void);
+	void moveSelectionPageDown(void);
 	void updateWindowPosition(void);
 	void switchToSelectedBuffer(void);
 	void setupListView(void);
@@ -129,7 +134,7 @@ private:
 	/* Constants */
 	static const int SEARCH_STRING_BUFFER_MAX = 255;
 	static const int COLUMN_PADDING = 30;
-
+	
 	
 	
 

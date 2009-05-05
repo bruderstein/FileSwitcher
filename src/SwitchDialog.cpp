@@ -41,7 +41,8 @@ LRESULT CALLBACK editProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 	{
 		case WM_KEYDOWN:
 			extended = ((lParam & 0x01000000) == 0x01000000);
-			if (wParam == VK_DOWN || wParam == VK_UP || (wParam == VK_NEXT && extended) || (wParam == VK_PRIOR && extended))
+			if (wParam == VK_DOWN || wParam == VK_UP || (wParam == VK_NEXT && extended) || (wParam == VK_PRIOR && extended)
+				|| (wParam == VK_HOME && extended) || (wParam == VK_END && extended))
 			{
 				::SendMessage(GetParent(hwnd), WM_KEYDOWN, wParam, 0);
 				return TRUE;
@@ -360,7 +361,7 @@ void SwitchDialog::setupListView(void)
 	col.fmt			= LVCFMT_RIGHT;
 	ListView_InsertColumn(_hListView, 3, &col);
 */
-	ListView_SetExtendedListViewStyle(_hListView, LVS_EX_FULLROWSELECT);
+	ListView_SetExtendedListViewStyle(_hListView, LVS_EX_FULLROWSELECT | LVS_EX_HEADERDRAGDROP);
 
 }
 
@@ -401,11 +402,23 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 					moveSelectionBottom();
 					return TRUE;
 				}
+				
 				case VK_PRIOR:
 				{
 					moveSelectionTop();
 					return TRUE;
 				}
+				case VK_HOME:
+				{
+					moveSelectionTop();
+					return TRUE;
+				}
+				case VK_END:
+				{
+					moveSelectionBottom();
+					return TRUE;
+				}
+
 				case VK_TAB:
 				{
 					if (_options->emulateCtrlTab && !_overrideCtrlTab)
@@ -521,10 +534,13 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 			switch(LOWORD(wParam))
 			{
 				case WA_INACTIVE:
-					updateWindowPosition();
-					cleanup();
-					display(FALSE);
-					return TRUE;
+					if (!_displayingOptionsDialog)
+					{
+						updateWindowPosition();
+						cleanup();
+						display(FALSE);
+						return TRUE;
+					}
 				
 			}
 			break;
@@ -552,7 +568,9 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 					break;
 
 				case IDC_OPTIONS:
+					_displayingOptionsDialog = TRUE;
 					_configDlg->doModal(_hSelf);
+					_displayingOptionsDialog = FALSE;
 
 					TCHAR searchString[SEARCH_STRING_BUFFER_MAX];
 					::GetDlgItemText(_hSelf, IDC_FILEEDIT, (LPTSTR)searchString, SEARCH_STRING_BUFFER_MAX);
@@ -870,10 +888,10 @@ void SwitchDialog::moveSelectionBottom(void)
 		::SendMessage(_hListView, LVM_ENSUREVISIBLE, itemCount - 1, 0);
 	}
 
-	
-	
 
 }
+
+
 
 
 void SwitchDialog::moveSelectionTop(void)
@@ -889,6 +907,8 @@ void SwitchDialog::moveSelectionTop(void)
 		::SendMessage(_hListView, LVM_ENSUREVISIBLE, 0, 0);
 	}
 }
+
+
 
 
 void SwitchDialog::clearList(void)

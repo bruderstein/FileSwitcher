@@ -5,6 +5,7 @@
 EditFile::EditFile(void)
 {
 	_dataSet = false;
+	_indexString = NULL;
 }
 
 EditFile::EditFile(int view, int index, CONST TCHAR* filename, int searchFlags, int bufferID)
@@ -33,11 +34,11 @@ EditFile::EditFile(int view, int index, CONST TCHAR* filename, int searchFlags, 
 
 	
 	_dataSet = true;
+	_indexString = NULL;
 	setIndex(view, index);
 	_bufferID = bufferID;
 	_fileStatus = SAVED;
 
-	_indexString = NULL;
 }
 
 
@@ -116,6 +117,11 @@ void EditFile::setIndex(int view, int index)
 {
 	_view = view;
 	_index = index;
+	if (_indexString != NULL)
+	{
+		delete[] _indexString;
+		_indexString = NULL;
+	}
 }
 
 void EditFile::clearIndexes()

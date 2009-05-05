@@ -87,9 +87,10 @@ CAPTION "About File Switcher"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,152,7,50,14
-    LTEXT           "File Switcher 0.5",IDC_STATIC,7,7,124,8
+    LTEXT           "File Switcher 0.6.0.1",IDC_STATIC,7,7,124,8
     LTEXT           "Author: Dave Brotherstone",IDC_STATIC,7,29,88,8
     LTEXT           "davegb@pobox.com",IDC_STATIC,33,39,67,8
+    LTEXT           "May 2009",IDC_STATIC,7,17,32,8
 END
 
 IDD_CONFIGDIALOG DIALOGEX 0, 0, 238, 306
@@ -163,7 +164,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 202
         TOPMARGIN, 7
-        BOTTOMMARGIN, 57
+        BOTTOMMARGIN, 56
     END
 
     IDD_CONFIGDIALOG, DIALOG
