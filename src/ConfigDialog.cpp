@@ -54,6 +54,12 @@ void ConfigDialog::initialiseOptions()
 	else
 		::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEINDEX, BM_SETCHECK, BST_UNCHECKED, 0);
 
+	if (_options->searchFlags & SEARCHFLAG_INCLUDEVIEW)
+		::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEVIEW, BM_SETCHECK, BST_CHECKED, 0);
+	else
+		::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEVIEW, BM_SETCHECK, BST_UNCHECKED, 0);
+
+
 	switch(LOBYTE(_options->defaultSortOrder))
 	{
 		case FILENAME:
@@ -129,6 +135,16 @@ void ConfigDialog::initialiseOptions()
 		::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZEWINDOW, BM_SETCHECK, BST_UNCHECKED, 0);
 
 	
+	if (_options->columnForView)
+		::SendDlgItemMessage(_hSelf, IDC_CHECKSEPARATECOLUMNFORVIEW, BM_SETCHECK, BST_CHECKED, 0);
+	else
+		::SendDlgItemMessage(_hSelf, IDC_CHECKSEPARATECOLUMNFORVIEW, BM_SETCHECK, BST_UNCHECKED, 0);
+
+	if (_options->noDialogForCtrlTab)
+		::SendDlgItemMessage(_hSelf, IDC_CHECKNODIALOGFORCTRLTAB, BM_SETCHECK, BST_CHECKED, 0);
+	else
+		::SendDlgItemMessage(_hSelf, IDC_CHECKNODIALOGFORCTRLTAB, BM_SETCHECK, BST_UNCHECKED, 0);
+
 
 }
 
@@ -221,6 +237,10 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 						if (BST_CHECKED == result)
 							_options->searchFlags |= SEARCHFLAG_INCLUDEINDEX;
 
+						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEVIEW, BM_GETCHECK, 0, 0);
+						if (BST_CHECKED == result)
+							_options->searchFlags |= SEARCHFLAG_INCLUDEVIEW;
+
 
 						result = ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTFILENAME, BM_GETCHECK, 0, 0);
 						if (BST_CHECKED == result)
@@ -279,6 +299,19 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 						else
 							_options->autoSizeWindow = FALSE;
 
+						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKSEPARATECOLUMNFORVIEW, BM_GETCHECK, 0, 0);
+						if (BST_CHECKED == result)
+							_options->columnForView = TRUE;
+						else
+							_options->columnForView = FALSE;
+
+						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKNODIALOGFORCTRLTAB, BM_GETCHECK, 0, 0);
+						if (BST_CHECKED == result)
+							_options->noDialogForCtrlTab = TRUE;
+						else
+							_options->noDialogForCtrlTab = FALSE;
+
+						
 
 					case IDCANCEL :
 						if (_isModal)

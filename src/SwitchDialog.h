@@ -56,8 +56,11 @@ public:
    	void doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab);
 	void setWindowPosition(int x, int y, int width, int height);
 	void getWindowPosition(RECT &rc);
-	int getCurrentSortOrder(void);
-	
+	int  getCurrentSortOrder(void);
+	void getColumnOrderString(TCHAR *buffer, int bufferLength);
+	void setColumnOrder(TCHAR *columnOrder);
+	TCHAR *getColumnWidths(TCHAR *buffer, int bufferLength);
+	//void setColumnWidths(TCHAR *buffer);
 
     virtual void destroy() {};
 	
@@ -103,7 +106,8 @@ private:
 
 	/* Options structure */
 	struct options_t *_options;
-	
+	BOOL _columnForView;
+
 	/* If Ctrl-Tab has been activated, and the sort order has been overridden to Index*/
 	BOOL _haveOverriddenSortOrder;
 
@@ -116,9 +120,11 @@ private:
 	/* Link between BufferID and file index */
 	std::map<int, int> _bufferToIndex;
 
+
+
 	/* Private methods */
     void cleanup(void);
-	void searchFiles(TCHAR* searchString);
+	void searchFiles(TCHAR* search, int selectedEditFileView, int selectedEditFileIndex);
 	void addListEntry(EditFile *editFile, bool selected);
 	void clearList(void);
 	void moveSelectionUp(BOOL wrap);
@@ -126,10 +132,13 @@ private:
 	void moveSelectionTop(void);
 	void moveSelectionBottom(void);
 	void moveSelectionPageDown(void);
+	void moveSelectionPageUp(void);
 	void updateWindowPosition(void);
 	void switchToSelectedBuffer(void);
-	void setupListView(void);
 	void setupColumnWidths(EditFileContainer &editFiles);
+	
+	int getCurrentIndex(int currentView);
+	int getCurrentView(void);
 
 	/* Constants */
 	static const int SEARCH_STRING_BUFFER_MAX = 255;

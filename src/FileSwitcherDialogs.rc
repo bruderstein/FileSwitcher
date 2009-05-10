@@ -87,13 +87,13 @@ CAPTION "About File Switcher"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,152,7,50,14
-    LTEXT           "File Switcher 0.6.0.1",IDC_STATIC,7,7,124,8
+    LTEXT           "File Switcher 0.7 (dev)",IDC_STATIC,7,7,124,8
     LTEXT           "Author: Dave Brotherstone",IDC_STATIC,7,29,88,8
     LTEXT           "davegb@pobox.com",IDC_STATIC,33,39,67,8
     LTEXT           "May 2009",IDC_STATIC,7,17,32,8
 END
 
-IDD_CONFIGDIALOG DIALOGEX 0, 0, 238, 306
+IDD_CONFIGDIALOG DIALOGEX 0, 0, 238, 354
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "File Switcher Search Options"
@@ -107,39 +107,47 @@ BEGIN
     CONTROL         "Use only files in the current &view",
                     IDC_CHECKONLYCURRENTVIEW,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,17,48,120,10
-    GROUPBOX        "Items to include in search",IDC_STATIC,16,96,143,57
+    GROUPBOX        "Items to include in search",IDC_STATIC,16,114,143,69
     CONTROL         "&Filename",IDC_CHECKINCLUDEFILENAME,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,26,110,44,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,26,128,44,10
     CONTROL         "&Path",IDC_CHECKINCLUDEPATH,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,26,124,31,10
+                    WS_TABSTOP,26,142,31,10
     CONTROL         "File &index",IDC_CHECKINCLUDEINDEX,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,26,138,46,10
-    GROUPBOX        "Default Sort Order",IDC_STATIC,16,160,143,72
+                    BS_AUTOCHECKBOX | WS_TABSTOP,26,156,46,10
+    GROUPBOX        "Default Sort Order",IDC_STATIC,16,192,143,72
     CONTROL         "Always &remember user selection",IDC_RADIOSORTREMEMBER,
-                    "Button",BS_AUTORADIOBUTTON | WS_GROUP,28,173,118,10
+                    "Button",BS_AUTORADIOBUTTON | WS_GROUP,28,205,118,10
     CONTROL         "Fi&lename, Path",IDC_RADIOSORTFILENAME,"Button",
-                    BS_AUTORADIOBUTTON,28,187,63,10
+                    BS_AUTORADIOBUTTON,28,219,63,10
     CONTROL         "Pa&th, Filename",IDC_RADIOSORTPATH,"Button",
-                    BS_AUTORADIOBUTTON,28,201,63,10
-    CONTROL         "Document / &Tab order",IDC_RADIOSORTINDEX,"Button",
-                    BS_AUTORADIOBUTTON,28,216,86,10
+                    BS_AUTORADIOBUTTON,28,233,63,10
+    CONTROL         "Inde&x (tab order)",IDC_RADIOSORTINDEX,"Button",
+                    BS_AUTORADIOBUTTON,28,248,72,10
     CONTROL         "Sort &descending",IDC_CHECKSORTDESCENDING,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,240,67,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,272,67,10
     CONTROL         "R&eset to default order for each switch",
                     IDC_CHECKRESETSORTORDER,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,17,254,136,10
+                    WS_TABSTOP,17,286,136,10
     DEFPUSHBUTTON   "OK",IDOK,181,7,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,181,24,50,14
     CONTROL         "Override sort order to Ta&b Order when Ctrl-Tabbing",
                     IDC_CHECKOVERRIDESORTWHENTABBING,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,268,183,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,300,183,10
     CONTROL         "Revert sort order if t&yping begins during Ctrl-Tabbing",
                     IDC_CHECKREVERTSORTORDERDURINGTABBING,"Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,17,282,183,10
+                    BS_AUTOCHECKBOX | WS_TABSTOP,17,314,183,10
     CONTROL         "Auto si&ze columns",IDC_CHECKAUTOSIZECOLUMNS,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,64,73,10
     CONTROL         "Auto size &window",IDC_CHECKAUTOSIZEWINDOW,"Button",
                     BS_AUTOCHECKBOX | WS_TABSTOP,17,80,71,10
+    CONTROL         "View",IDC_CHECKINCLUDEVIEW,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,26,170,31,10
+    CONTROL         "Use separate col&umn for view",
+                    IDC_CHECKSEPARATECOLUMNFORVIEW,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,94,111,10
+    CONTROL         "Don't show switcher window when Ctrl-Tabbing",
+                    IDC_CHECKNODIALOGFORCTRLTAB,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,17,328,183,10
 END
 
 
@@ -172,7 +180,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 231
         TOPMARGIN, 7
-        BOTTOMMARGIN, 298
+        BOTTOMMARGIN, 346
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -184,8 +192,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,6,0,0
- PRODUCTVERSION 0,6,0,0
+ FILEVERSION 0,6,0,1
+ PRODUCTVERSION 0,6,0,1
  FILEFLAGSMASK 0x37L
 #ifdef _DEBUG
  FILEFLAGS 0x21L
@@ -203,13 +211,13 @@ BEGIN
             VALUE "Comments", "Latest Source available from http://www.brotherstone.co.uk/npp/FileSwitcher_src.zip"
             VALUE "CompanyName", "Dave Brotherstone"
             VALUE "FileDescription", "Notepad++ File Switcher plugin : a free (GPL) source code file switcher plugin"
-            VALUE "FileVersion", "0, 6, 0, 0"
+            VALUE "FileVersion", "0, 7, 0, 0"
             VALUE "InternalName", "File Switcher"
             VALUE "LegalCopyright", "Copyright (C) 2009 Dave Brotherstone"
             VALUE "OriginalFilename", "FileSwitcher.dll"
             VALUE "ProductName", "File Switcher plugin"
-            VALUE "ProductVersion", "0, 6, 0, 0"
-            VALUE "SpecialBuild", "UNICODE"
+            VALUE "ProductVersion", "0, 7, 0, 0"
+            VALUE "SpecialBuild", "DEV"
         END
     END
     BLOCK "VarFileInfo"

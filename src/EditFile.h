@@ -17,23 +17,28 @@ class EditFile
 
 public:
     EditFile(void);
-	EditFile(int view, int index, CONST TCHAR *filename, int searchFlags, int bufferID);
+	EditFile(int view, int index, CONST TCHAR *filename, int searchFlags, int bufferID, void* scintillaDoc);
 	~EditFile(void);
 	
 	
 	TCHAR* getFilename();
 	TCHAR* getFullFilename();
 	TCHAR* getPath();
-	TCHAR* getIndexString();
-	int getIndex();
-	int getView();
-	void setIndex(int view, int index);
-	
-	void clearIndexes();
-	
-	int getBufferID();
+	TCHAR* getIndexString(BOOL includeView);
+	TCHAR* getViewString();
+	void*  getScintillaDoc();
+	int    getIndex();
+	int    getView();
+	int    getBufferID();
 	FileStatus getFileStatus();
-	void setFileStatus(FileStatus status);
+	
+	void   setIndex(int view, int index);
+	void   setFileStatus(FileStatus status);
+	void   setScintillaDoc(void* scintillaDoc);
+	void   clearIndexes();
+	
+	
+	
 
 private:
 	TCHAR* _fullFilename;
@@ -49,5 +54,8 @@ private:
 	int _index;
 
 	TCHAR* _indexString;
+	TCHAR* _viewString;
+
+	void* _scintillaDoc;
 
 };

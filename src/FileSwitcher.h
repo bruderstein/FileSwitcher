@@ -26,15 +26,20 @@ extern HIMAGELIST ghImgList;
 
 #define GENERAL_SETTINGS		_T("General")
 #define KEY_EMULATECTRLTAB		_T("emulateCtrlTab")
-#define KEY_ONLYUSECURRENTVIEW _T("onlyUseCurrentView")
+#define KEY_ONLYUSECURRENTVIEW  _T("onlyUseCurrentView")
 #define KEY_AUTOSIZECOLUMNS		_T("autoSizeColumns")
 #define KEY_AUTOSIZEWINDOW		_T("autoSizeWindow")
+#define KEY_COLUMNFORVIEW       _T("columnForView")
+#define KEY_NODIALOGFORCTRLTAB  _T("noDialogForCtrlTab")
 #define SORT_SETTINGS			_T("Sort")
 #define KEY_DEFAULTSORT			_T("default")
 #define KEY_ACTIVESORT			_T("active")
 #define KEY_RESETSORT			_T("reset")
 #define KEY_OVERRIDESORT		_T("overrideSort")
 #define KEY_REVERTSORT			_T("revertSort")
+#define LISTVIEW_SETTINGS		_T("ListView")
+#define KEY_COLUMNORDER		    _T("columnOrder")
+#define KEY_COLUMNWIDTHS		_T("columnWidths")
 
 #define DIALOGY_DEFAULT			100
 #define DIALOGWIDTH_DEFAULT		400
@@ -57,6 +62,8 @@ typedef std::multimap<int, EditFile*>			EditFileContainer;
 typedef std::multimap<tstring, EditFile*>		FilenameContainer;
 
 
+#define COLUMNORDER_LENGTH     5
+#define COLUMNWIDTH_LENGTH     50
 
 
 struct options_t
@@ -71,6 +78,10 @@ struct options_t
 	BOOL onlyUseCurrentView;
 	BOOL autoSizeColumns;
 	BOOL autoSizeWindow;
+	BOOL columnForView;
+	TCHAR columnOrder[COLUMNORDER_LENGTH];
+	TCHAR columnWidths[COLUMNWIDTH_LENGTH];
+	BOOL noDialogForCtrlTab;
 };
 
 

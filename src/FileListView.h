@@ -31,7 +31,12 @@ public:
 
 	static int CALLBACK listViewComparer(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 
-	
+	TCHAR *getColumnOrderString(TCHAR *buffer, int bufferSize);
+	TCHAR *getColumnWidths(TCHAR *buffer, int bufferSize);
+    void  setColumnWidths(TCHAR *widths);
+	void  setColumnOrder(TCHAR *columnOrder);
+
+	void updateColumns(void);
 
 private:
 	
@@ -46,9 +51,12 @@ private:
 	HBITMAP     _bmpSortUp;
 	HBITMAP     _bmpSortDown;
 
+	BOOL		_columnForViewAdded;
+	int			_viewColumn;
+
 	options_t	*_options;
 
 	void updateHeader(void);
-
+	void setupListViewHeader(void);
 };
 

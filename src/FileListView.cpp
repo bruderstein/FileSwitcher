@@ -11,9 +11,13 @@ FileListView::FileListView()
 void FileListView::init(options_t *options, HINSTANCE hInst, HWND hParent, HWND hListView)
 {
 	_hListView = hListView; 
-	_hHeader = ListView_GetHeader(_hListView); 
+	_options = options;
 	_hInstance = hInst;
 	_hParentWindow = hParent;
+	
+	
+	setupListViewHeader();
+	_hHeader = ListView_GetHeader(_hListView); 
 	
 	if (LOBYTE(options->defaultSortOrder) == ALWAYSREMEMBER)
         _currentSortOrder = options->activeSortOrder;
@@ -25,7 +29,9 @@ void FileListView::init(options_t *options, HINSTANCE hInst, HWND hParent, HWND 
 	}
 
 	_currentView = 0;
-	_options = options;
+
+	setColumnOrder(_options->columnOrder);
+	setColumnWidths(_options->columnWidths);
 
 	ListView_SetImageList(_hListView, ghImgList, LVSIL_SMALL);
 	updateHeader();
@@ -77,8 +83,17 @@ int CALLBACK FileListView::listViewComparer(LPARAM lParam1, LPARAM lParam2, LPAR
 
 			break;
 	
+		case 3:
+
+			returnValue = edit1->getView() - edit2->getView();
+			if (returnValue == 0)
+			{
+				returnValue = edit1->getIndex() - edit2->getIndex();
+			}
+			break;
 
 		case FILENAME:
+
 		default:
 			returnValue = _tcsicmp(edit1->getFilename(), edit2->getFilename());
 			if (returnValue == 0)
@@ -137,14 +152,11 @@ LRESULT FileListView::notify(WPARAM wParam, LPARAM lParam)
 					break;
 			
 				case 2:
-					index = editFile->getIndex();
-					
-
-
-
-					plvdi->item.pszText = editFile->getIndexString();
+					plvdi->item.pszText = editFile->getIndexString(_options->columnForView ? FALSE : TRUE);
 					break;
-				
+
+				case 3:
+					plvdi->item.pszText = editFile->getViewString();
 
 				default:
 					break;
@@ -220,4 +232,184 @@ void FileListView::updateHeader(void)
 int FileListView::getCurrentSortOrder()
 {
 	return _currentSortOrder;
+}
+
+
+void FileListView::setupListViewHeader(void)
+{
+	
+	LVCOLUMN col;
+	col.mask		= LVCF_TEXT | LVCF_FMT | LVCF_WIDTH;
+	col.fmt			= LVCFMT_LEFT;
+	col.iSubItem	= 0;
+	col.cx			= 150;
+	col.pszText = _T("Filename");
+	ListView_InsertColumn(_hListView, 0, &col);
+
+	col.iSubItem	= 1;
+	col.cx			= 200;
+	col.pszText		= _T("Path");
+	ListView_InsertColumn(_hListView, 1, &col);
+	
+	col.iSubItem	= 2;
+	col.cx			= 40;
+	col.pszText		= _T("Index");
+	col.fmt			= LVCFMT_RIGHT;
+	ListView_InsertColumn(_hListView, 2, &col);
+
+	if (_options->columnForView)
+	{
+		
+	
+		_columnForViewAdded = TRUE;
+		_viewColumn			= 3;
+		col.iSubItem	= _viewColumn;
+		col.cx			= 40;
+		col.pszText		= _T("View");
+		col.fmt			= LVCFMT_RIGHT;
+		ListView_InsertColumn(_hListView, _viewColumn, &col);
+	}
+
+	ListView_SetExtendedListViewStyle(_hListView, LVS_EX_FULLROWSELECT | LVS_EX_HEADERDRAGDROP | LVS_EX_DOUBLEBUFFER);
+
+}
+
+void FileListView::updateColumns(void)
+{
+	if (_columnForViewAdded)
+	{
+		ListView_DeleteColumn(_hListView, _viewColumn);
+		_columnForViewAdded = FALSE;
+	}
+
+	if (_options->columnForView)
+	{
+		LVCOLUMN col;
+		col.mask		= LVCF_TEXT | LVCF_FMT | LVCF_WIDTH;
+		col.fmt			= LVCFMT_RIGHT;
+
+		_viewColumn = 3;
+		_columnForViewAdded = TRUE;
+		col.iSubItem	= _viewColumn;
+		col.cx			= 40;
+		col.pszText		= _T("View");
+		col.fmt			= LVCFMT_RIGHT;
+		ListView_InsertColumn(_hListView, _viewColumn, &col);
+	}
+
+}
+
+TCHAR *FileListView::getColumnOrderString(TCHAR *buffer, int bufferSize)
+{
+	int columnOrder[4];
+	int columns;
+	
+
+	if (_options->columnForView)
+		columns = 4;
+	else
+		columns = 3;
+
+	
+
+	ListView_GetColumnOrderArray(_hListView, columns, &columnOrder);
+	
+	// empty the buffer
+	_tcscpy(buffer, _T(""));
+
+	TCHAR tmp[2];
+
+	for(int index = 0; index < columns && index < bufferSize; index++)
+	{
+		_tcscat(buffer, _itot(columnOrder[index], tmp, 10));
+	}
+
+	return buffer;
+}
+
+
+TCHAR *FileListView::getColumnWidths(TCHAR *buffer, int bufferSize)
+{
+	int columnWidth;
+	int columns;
+	
+
+	if (_options->columnForView)
+		columns = 4;
+	else
+		columns = 3;
+
+	TCHAR currentColumn[10];
+	_tcscpy(buffer, _T(""));
+
+	int currentLength = 0;
+	
+	for(int columnIndex = 0; columnIndex < columns; columnIndex++)
+	{
+		columnWidth = ListView_GetColumnWidth(_hListView, columnIndex);
+		
+		if (bufferSize > (currentLength + 1))
+		{
+			if (columnIndex > 0)
+			{
+				_tcscat(buffer, _T(","));
+				currentLength++;
+			}
+		}
+		else 
+			break;
+
+		
+
+		_itot(columnWidth, currentColumn, 10);
+		
+		if (bufferSize > (currentLength + _tcslen(currentColumn)))
+		{
+			_tcscat(buffer, currentColumn);
+			currentLength += _tcslen(currentColumn);
+		} 
+		else
+			break;
+
+
+	}
+
+	return buffer;
+}
+
+void FileListView::setColumnWidths(TCHAR *columnWidths)
+{
+	TCHAR *width;
+	int index = 0;
+	width = _tcstok(columnWidths, _T(","));
+	int iWidth;
+
+	while(NULL != width)
+	{
+		iWidth = _ttoi(width);
+		ListView_SetColumnWidth(_hListView, index, iWidth);
+
+		width = _tcstok(NULL, _T(","));
+		++index;
+	}
+
+}
+	
+
+void FileListView::setColumnOrder(TCHAR *columnOrder)
+{
+	int columnOrderInt[4];
+
+
+	int columnsSupplied = _tcslen(columnOrder);
+	TCHAR columnIndex[2];
+	columnIndex[1] = '\0';
+
+	for(int index = 0; index < columnsSupplied; index++)
+	{
+		columnIndex[0] = columnOrder[index];
+		columnOrderInt[index] = _ttoi(columnIndex);
+	}
+	
+	ListView_SetColumnOrderArray(_hListView, columnsSupplied, columnOrderInt);
 }
