@@ -100,22 +100,6 @@ void ConfigDialog::initialiseOptions()
 		::SendDlgItemMessage(_hSelf, IDC_CHECKONLYCURRENTVIEW, BM_SETCHECK, BST_UNCHECKED, 0);
 
 
-	if (_options->overrideSortWhenTabbing)
-	{
-		::SendDlgItemMessage(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING, BM_SETCHECK, BST_CHECKED, 0);
-		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), TRUE);
-	}
-	else
-	{
-		::SendDlgItemMessage(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING, BM_SETCHECK, BST_UNCHECKED, 0);
-		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), FALSE);
-	}
-
-	if (_options->revertSortWhenTabbing)
-		::SendDlgItemMessage(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING, BM_SETCHECK, BST_CHECKED, 0);
-	else
-		::SendDlgItemMessage(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING, BM_SETCHECK, BST_UNCHECKED, 0);
-
 
 	if (_options->autoSizeColumns)
 	{
@@ -140,11 +124,64 @@ void ConfigDialog::initialiseOptions()
 	else
 		::SendDlgItemMessage(_hSelf, IDC_CHECKSEPARATECOLUMNFORVIEW, BM_SETCHECK, BST_UNCHECKED, 0);
 
-	if (_options->noDialogForCtrlTab)
-		::SendDlgItemMessage(_hSelf, IDC_CHECKNODIALOGFORCTRLTAB, BM_SETCHECK, BST_CHECKED, 0);
-	else
-		::SendDlgItemMessage(_hSelf, IDC_CHECKNODIALOGFORCTRLTAB, BM_SETCHECK, BST_UNCHECKED, 0);
+	if (_options->emulateCtrlTab)
+	{
+		::SetDlgItemText(_hSelf, IDC_LABELCTRLTAB, _T("Ctrl-Tab functionality is enabled"));
+		::ShowWindow(GetDlgItem(_hSelf, IDC_LABELCTRLTAB), SW_HIDE);
 
+		::ShowWindow(GetDlgItem(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING), SW_SHOW);
+		::ShowWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), SW_SHOW);
+		::ShowWindow(GetDlgItem(_hSelf, IDC_CHECKNODIALOGFORCTRLTAB), SW_SHOW);
+
+/*
+		::EnableWindow(GetDlgItem(_hSelf, IDC_LABELCTRLTAB), FALSE);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING), TRUE);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), TRUE);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKNODIALOGFORCTRLTAB), TRUE);
+*/	
+
+		if (_options->overrideSortWhenTabbing)
+		{
+			::SendDlgItemMessage(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING, BM_SETCHECK, BST_CHECKED, 0);
+			::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), TRUE);
+		}
+		else
+		{
+			::SendDlgItemMessage(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING, BM_SETCHECK, BST_UNCHECKED, 0);
+			::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), FALSE);
+		}
+
+		if (_options->revertSortWhenTabbing)
+			::SendDlgItemMessage(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING, BM_SETCHECK, BST_CHECKED, 0);
+		else
+			::SendDlgItemMessage(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING, BM_SETCHECK, BST_UNCHECKED, 0);
+
+
+
+		if (_options->noDialogForCtrlTab)
+			::SendDlgItemMessage(_hSelf, IDC_CHECKDIALOGFORCTRLTAB, BM_SETCHECK, BST_UNCHECKED, 0);
+		else
+			::SendDlgItemMessage(_hSelf, IDC_CHECKDIALOGFORCTRLTAB, BM_SETCHECK, BST_CHECKED, 0);
+	}
+	else
+	{
+		::SetDlgItemText(_hSelf, IDC_LABELCTRLTAB, _T("Ctrl-Tab functionality is disabled. ")
+			                                       _T("To enable it, set the shortcuts for ")
+												   _T("\"Switch to next document\" and ")
+												   _T("\"Switch to previous document\" ")
+												   _T("to Ctrl-Tab and Ctrl-Shift-Tab respectively. ")
+												   _T("Remove the shortcuts from the Notepad++ defaults."));
+		::ShowWindow(GetDlgItem(_hSelf, IDC_LABELCTRLTAB), SW_SHOW);
+
+		::ShowWindow(GetDlgItem(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING), SW_HIDE);
+		::ShowWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), SW_HIDE);
+		::ShowWindow(GetDlgItem(_hSelf, IDC_CHECKNODIALOGFORCTRLTAB), SW_HIDE);
+		/*
+		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING), FALSE);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), FALSE);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKDIALOGFORCTRLTAB), FALSE);
+		*/
+	}
 
 }
 
@@ -160,6 +197,7 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
         case WM_INITDIALOG :
 		{
 			initialiseOptions();
+			goToCenter();
 			return TRUE;
 		}
 		
@@ -305,11 +343,11 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 						else
 							_options->columnForView = FALSE;
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKNODIALOGFORCTRLTAB, BM_GETCHECK, 0, 0);
+						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKDIALOGFORCTRLTAB, BM_GETCHECK, 0, 0);
 						if (BST_CHECKED == result)
-							_options->noDialogForCtrlTab = TRUE;
-						else
 							_options->noDialogForCtrlTab = FALSE;
+						else
+							_options->noDialogForCtrlTab = TRUE;
 
 						
 
