@@ -53,7 +53,7 @@ public:
 
 	};
 
-   	void doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab);
+   	void doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BOOL previousFile);
 	void setWindowPosition(int x, int y, int width, int height);
 	void getWindowPosition(RECT &rc);
 	int  getCurrentSortOrder(void);

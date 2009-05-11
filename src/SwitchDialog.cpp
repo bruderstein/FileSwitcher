@@ -110,7 +110,7 @@ LRESULT CALLBACK listProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 
 
 
-void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab)
+void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BOOL previousFile)
 {
 	_editFiles = editFiles;
 	_nbFiles = _editFiles.size();
@@ -233,7 +233,7 @@ void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab)
 
 			::SetFocus(_hListView);
 			
-			if (shiftState)
+			if (shiftState || previousFile)
 				moveSelectionUp(TRUE);
 			else
 				moveSelectionDown(TRUE);
@@ -630,11 +630,14 @@ void SwitchDialog::switchToSelectedBuffer()
 
 	if (NULL != editFile)
 	{
-		int currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
-		TCHAR *searchCopy = new TCHAR[SEARCH_STRING_BUFFER_MAX];
-		::GetDlgItemText(_hSelf, IDC_FILEEDIT, (LPTSTR)searchCopy, SEARCH_STRING_BUFFER_MAX);
-		(*_typedForFile)[currentBufferID] = searchCopy;
-		
+		if (!_options->emulateCtrlTab || _overrideCtrlTab)
+		{
+			int currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
+			TCHAR *searchCopy = new TCHAR[SEARCH_STRING_BUFFER_MAX];
+			::GetDlgItemText(_hSelf, IDC_FILEEDIT, (LPTSTR)searchCopy, SEARCH_STRING_BUFFER_MAX);
+			(*_typedForFile)[currentBufferID] = searchCopy;
+		}
+
 		::SendMessage(_nppData._nppHandle, NPPM_ACTIVATEDOC, editFile->getView(), editFile->getIndex());
 	}
 }

@@ -56,7 +56,7 @@ ConfigDialog	configDlg;
 
 
 
-void showSwitchDialog(BOOL ignoreCtrlTab);
+void showSwitchDialog(BOOL ignoreCtrlTab, BOOL previousFile);
 void showSwitchDialogNormal();
 void showSwitchDialogNext();
 void showSwitchDialogPrevious();
@@ -308,7 +308,7 @@ extern "C" __declspec(dllexport) BOOL isUnicode()
 #endif
 
 
-void showSwitchDialog(BOOL ignoreCtrlTab, int deltaFromCurrentDoc)
+void showSwitchDialog(BOOL ignoreCtrlTab, BOOL previousFile)
 {
 	
 	int nbFile[2];
@@ -389,14 +389,14 @@ void showSwitchDialog(BOOL ignoreCtrlTab, int deltaFromCurrentDoc)
 		}
 	}
 
-	switchDlg.doDialog(editFiles, ignoreCtrlTab);
+	switchDlg.doDialog(editFiles, ignoreCtrlTab, previousFile);
 	
 }
 
 
 void showSwitchDialogNormal()
 {
-		showSwitchDialog(TRUE, 0);
+		showSwitchDialog(TRUE, FALSE);
 }
 
 
@@ -404,7 +404,7 @@ void showSwitchDialogNext()
 {
 	if (options.emulateCtrlTab && !options.noDialogForCtrlTab)
 	{
-		showSwitchDialog(FALSE, 1);
+		showSwitchDialog(FALSE, FALSE);
 	}
 	else
 	{
@@ -425,7 +425,7 @@ void showSwitchDialogPrevious()
 {
 	if (options.emulateCtrlTab && !options.noDialogForCtrlTab)
 	{
-		showSwitchDialog(FALSE, -1);
+		showSwitchDialog(FALSE, TRUE);
 	}
 	else
 	{
