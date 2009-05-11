@@ -1,5 +1,35 @@
 File Switcher 
 
+1.0
+
++ ADDED Save column order
++ ADDED Save column sizes
++ ADDED Option to include view in search
++ ADDED Option to show view as separate column
++ ADDED Read only status now shown (thanks to almostautomated for his help on this)
++ ADDED Option to Ctrl-tab without showing window (tab order only for now)
+
++ FIXED Page up / page down keys now work as expected
++ FIXED Order / file index column title - should have been "Index" to be consistent
++ FIXED Bug with ctrl-tab highlight selection (found by fool4uanyway)
+
+
+0.6.0.1
++ FIXED options button on switch dialog
++ FIXED possible crash-bug when opening a file (noticed by singx7)
+
+0.6
+
++ Now uses a list view instead of a list box, so you can sort by the column you want 
++ Shows file status 
++ Supports Ctrl-Tab emulation, but will allow typing whilst ctrl-tabbing 
++ Supports multiple views (options to show files from just the current view, or both views) 
++ Automatic resizing of columns (optional) 
++ Allows selection of default sort orders, or remembering your previous 
++ Added options button to the switcher dialog 
++ Options for what to include in search (filename, path, tab order) 
+
+
 0.2
 
 Features:
