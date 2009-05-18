@@ -1,5 +1,14 @@
 File Switcher 
 
+1.0.1.0
++ CHANGED  Switch to next document and Switch to previous document now the other way around (previous first)
++ FIXED    Ctrl-Tab wiping out pretyped text
++ FIXED    Document selection and scroll position being wiped out when switching 
+           (with or without the file switcher)
++ FIXED    Ctrl-(sh)-Tab not highlighting the correct document initially
++ FIXED    Sort-descending was selected after selecting "Always Remember"
+ 
+
 1.0
 
 + ADDED Save column order
