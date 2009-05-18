@@ -83,7 +83,7 @@ void ConfigDialog::initialiseOptions()
 			break;    
 	}
 
-	if (_options->defaultSortOrder & REVERSE_SORT_ORDER)
+	if (_options->defaultSortOrder & REVERSE_SORT_ORDER && _options->defaultSortOrder != ALWAYSREMEMBER)
 		::SendDlgItemMessage(_hSelf, IDC_CHECKSORTDESCENDING, BM_SETCHECK, BST_CHECKED, 0);
 	else
 		::SendDlgItemMessage(_hSelf, IDC_CHECKSORTDESCENDING, BM_SETCHECK, BST_UNCHECKED, 0);
@@ -295,10 +295,12 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 						result = ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTREMEMBER, BM_GETCHECK, 0, 0);
 						if (BST_CHECKED == result)
 							_options->defaultSortOrder = ALWAYSREMEMBER;
-
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKSORTDESCENDING, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->defaultSortOrder |= REVERSE_SORT_ORDER;
+						else 
+						{
+							result = ::SendDlgItemMessage(_hSelf, IDC_CHECKSORTDESCENDING, BM_GETCHECK, 0, 0);
+							if (BST_CHECKED == result)
+								_options->defaultSortOrder |= REVERSE_SORT_ORDER;
+						}
 
 						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKRESETSORTORDER, BM_GETCHECK, 0, 0);
 						if (BST_CHECKED == result)
