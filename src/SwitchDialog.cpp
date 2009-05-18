@@ -814,7 +814,12 @@ void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int sele
 
 	_listView.sortItems();
 
-	if (items && !madeSelection)
+	if (madeSelection)
+	{
+		int currentItem = SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
+		::SendMessage(_hListView, LVM_ENSUREVISIBLE, currentItem, 0);
+	}
+	else if (items && !madeSelection)
 	{
 		LVITEM item;
 		item.stateMask = LVIS_SELECTED;

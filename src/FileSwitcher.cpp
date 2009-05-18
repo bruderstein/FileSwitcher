@@ -87,16 +87,16 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 	case DLL_PROCESS_ATTACH:
 		  funcItem[0]._pFunc = showSwitchDialogNormal;
 		  funcItem[1]._pFunc = NULL;
-		  funcItem[2]._pFunc = showSwitchDialogNext;
-		  funcItem[3]._pFunc = showSwitchDialogPrevious;
+		  funcItem[2]._pFunc = showSwitchDialogPrevious;
+		  funcItem[3]._pFunc = showSwitchDialogNext;
 		  funcItem[4]._pFunc = NULL;
 		  funcItem[5]._pFunc = doConfig;
 		  funcItem[6]._pFunc = NULL;
 		  funcItem[7]._pFunc = doAbout;
 		  _tcscpy(funcItem[0]._itemName, _T("Show File Switcher"));
 		  _tcscpy(funcItem[1]._itemName, _T("-----------"));
-		  _tcscpy(funcItem[2]._itemName, _T("Switch to next file"));
-		  _tcscpy(funcItem[3]._itemName, _T("Switch to previous file"));
+		  _tcscpy(funcItem[2]._itemName, _T("Switch to previous document"));
+		  _tcscpy(funcItem[3]._itemName, _T("Switch to next document"));
 		  _tcscpy(funcItem[4]._itemName, _T("-----------"));
 		  _tcscpy(funcItem[5]._itemName, _T("Options"));
 		  _tcscpy(funcItem[6]._itemName, _T("-----------"));
@@ -184,7 +184,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 		case NPPN_READY:
 			ShortcutKey shKey;
 
-			if (::SendMessage(nppData._nppHandle, NPPM_GETSHORTCUTBYCMDID, funcItem[2]._cmdID, reinterpret_cast<LPARAM>(&shKey)))
+			if (::SendMessage(nppData._nppHandle, NPPM_GETSHORTCUTBYCMDID, funcItem[3]._cmdID, reinterpret_cast<LPARAM>(&shKey)))
 			{
 				if (shKey._key == 0x09  // TAB
 					&& shKey._isCtrl 
@@ -210,7 +210,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			break;
 
 		case NPPN_SHORTCUTREMAPPED:
-			if (notifyCode->nmhdr.idFrom == funcItem[2]._cmdID)
+			if (notifyCode->nmhdr.idFrom == funcItem[3]._cmdID)
 			{
 				ShortcutKey *sKey = (ShortcutKey*)(notifyCode->nmhdr.hwndFrom);
 				if (sKey->_key == VK_TAB 
@@ -252,7 +252,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 				else
 				{
 					EditFileContainer::iterator current = editFiles.find(notifyCode->nmhdr.idFrom);
-					if (current != editFiles.end() && current->second->getFileStatus() == READONLY)
+					if (current != editFiles.end())
 					{
 						int currentView;
 						::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&currentView));
@@ -332,7 +332,14 @@ void showSwitchDialog(BOOL ignoreCtrlTab, BOOL previousFile)
 	
 	if (readonly)
 		updateCurrentStatus(READONLY);
-
+	else
+	{
+		int modified = ::SendMessage(getCurrentHScintilla(currentView), SCI_GETMODIFY, 0, 0);
+		if (modified)
+			updateCurrentStatus(UNSAVED);
+		else
+			updateCurrentStatus(SAVED);
+	}
 	
 	for(int view = 0; view < 2; view++)
 	{
@@ -578,6 +585,12 @@ void updatePreviousDocStatus(void)
 		void* previousDoc = previous->second->getScintillaDoc();
 		if (previousDoc != 0)
 		{
+			int anchor     = ::SendMessage(previousScintilla, SCI_GETANCHOR, 0, 0);
+			int currentPos = ::SendMessage(previousScintilla, SCI_GETCURRENTPOS, 0, 0);
+			int xOffset    = ::SendMessage(previousScintilla, SCI_GETXOFFSET, 0, 0);
+			int firstVisible = ::SendMessage(previousScintilla, SCI_GETFIRSTVISIBLELINE, 0, 0);
+
+			::SendMessage(previousScintilla, SCI_ADDREFDOCUMENT, 0, reinterpret_cast<LPARAM>(currentDoc));
 			::SendMessage(previousScintilla, SCI_SETDOCPOINTER, 0, reinterpret_cast<LPARAM>(previousDoc));
 			BOOL readonly = ::SendMessage(previousScintilla, SCI_GETREADONLY, 0, 0);
 			if (readonly)
@@ -586,17 +599,21 @@ void updatePreviousDocStatus(void)
 			}
 			else
 			{
-				if (previous->second->getFileStatus() == READONLY)
-				{
-					int modified = ::SendMessage(previousScintilla, SCI_GETMODIFY, 0, 0);
-					if (1 == modified)
-						updateBufferStatus(previous->second->getBufferID(), UNSAVED);
-					else
-						updateBufferStatus(previous->second->getBufferID(), SAVED);
-				}
+				int modified = ::SendMessage(previousScintilla, SCI_GETMODIFY, 0, 0);
+				if (1 == modified)
+					updateBufferStatus(previous->second->getBufferID(), UNSAVED);
+				else
+					updateBufferStatus(previous->second->getBufferID(), SAVED);
 			}
 
 			::SendMessage(previousScintilla, SCI_SETDOCPOINTER, 0, reinterpret_cast<LPARAM>(currentDoc));
+			::SendMessage(previousScintilla, SCI_RELEASEDOCUMENT, 0, reinterpret_cast<LPARAM>(currentDoc));
+			::SendMessage(previousScintilla, SCI_GOTOPOS, 0, 0);
+			int lineToShow = ::SendMessage(previousScintilla, SCI_VISIBLEFROMDOCLINE, firstVisible, 0);
+			::SendMessage(previousScintilla, SCI_SETANCHOR, anchor, 0);
+			::SendMessage(previousScintilla, SCI_SETCURRENTPOS, currentPos, 0);
+			::SendMessage(previousScintilla, SCI_SETXOFFSET, xOffset, 0);
+			::SendMessage(previousScintilla, SCI_LINESCROLL, 0, lineToShow);
 		}
 
 		
