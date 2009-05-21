@@ -36,6 +36,7 @@ EditFile::EditFile(int view, int index, CONST TCHAR* filename, int searchFlags, 
 	
 	_dataSet = true;
 	_indexString = NULL;
+	_viewString = NULL;
 	setIndex(view, index);
 	_bufferID = bufferID;
 	_fileStatus = SAVED;
