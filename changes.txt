@@ -1,5 +1,14 @@
 File Switcher 
 
+1.0.2.0
++ CHANGED  Made colour of selection dark blue, as windows default (patch from ssgsmt)
++ CHANGED  Made home and end keys do default in the edit box
+
+
+1.0.1.1
++ FIXED    Crash bug with closing files (showed up with opening a session)
+
+
 1.0.1.0
 + CHANGED  Switch to next document and Switch to previous document now the other way around (previous first)
 + FIXED    Ctrl-Tab wiping out pretyped text
