@@ -42,7 +42,9 @@ LRESULT CALLBACK editProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 		case WM_KEYDOWN:
 			extended = ((lParam & 0x01000000) == 0x01000000);
 			if (wParam == VK_DOWN || wParam == VK_UP || (wParam == VK_NEXT && extended) || (wParam == VK_PRIOR && extended)
-				|| (wParam == VK_HOME && extended) || (wParam == VK_END && extended))
+                // Removed below to make home and end do their default on the edit box
+				//				|| (wParam == VK_HOME && extended) || (wParam == VK_END && extended)
+               )
 			{
 				::SendMessage(GetParent(hwnd), WM_KEYDOWN, wParam, 0);
 				return TRUE;
@@ -83,6 +85,10 @@ LRESULT CALLBACK listProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 				return TRUE;
 			}
 			break;
+	
+		case WM_KILLFOCUS:
+			// Ignore the kill focus message, so the highlight bar stays blue
+			return TRUE;
 
 		case WM_GETDLGCODE :
 		{
@@ -217,11 +223,6 @@ void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BO
 
 			searchFiles(_T(""), currentView, currentIndex);
 			
-			/*int currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
-			
-			int currentIndex = _bufferToIndex[currentBufferID];
-*/
-
 			::SetDlgItemText(_hSelf, IDC_FILEEDIT, _T(""));
 			
 			if (_options->overrideSortWhenTabbing)
@@ -262,6 +263,8 @@ void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BO
 		searchFiles(searchString, currentView, currentIndex);
 
 		::SendDlgItemMessage(_hSelf, IDC_FILEEDIT, EM_SETSEL, 0, _tcslen(searchString));
+		
+		::SetFocus(_hListView); // draw selected row dark blue (WM_KILLFOCUS will be ignored)
 		::SetFocus(_hEditbox);
 	
 		if (_options->resetSortOrder)
@@ -410,6 +413,7 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 					moveSelectionPageUp();
 					return TRUE;
 				}
+				/*
 				case VK_HOME:
 				{
 					moveSelectionTop();
@@ -420,7 +424,7 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 					moveSelectionBottom();
 					return TRUE;
 				}
-
+				*/
 				case VK_TAB:
 				{
 					if (_options->emulateCtrlTab && !_overrideCtrlTab)
