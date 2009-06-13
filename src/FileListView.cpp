@@ -132,8 +132,8 @@ void FileListView::setCurrentView(int currentView)
 
 LRESULT FileListView::notify(WPARAM wParam, LPARAM lParam)
 {
-	TCHAR tmp[20];
-	int index;
+
+
 	switch (reinterpret_cast<LPNMHDR>(lParam)->code)
 	{
 		case LVN_GETDISPINFO:
@@ -187,7 +187,7 @@ LRESULT FileListView::notify(WPARAM wParam, LPARAM lParam)
 
 		case NM_SETFOCUS:
 			::SendMessage(_hParentWindow, FSN_LISTVIEWSETFOCUS, 0, 0);
-			break;
+			return 0;
 
 	}
 }
@@ -315,13 +315,14 @@ TCHAR *FileListView::getColumnOrderString(TCHAR *buffer, int bufferSize)
 	ListView_GetColumnOrderArray(_hListView, columns, &columnOrder);
 	
 	// empty the buffer
-	_tcscpy(buffer, _T(""));
+	_tcscpy_s(buffer, bufferSize, _T(""));
 
 	TCHAR tmp[2];
 
 	for(int index = 0; index < columns && index < bufferSize; index++)
 	{
-		_tcscat(buffer, _itot(columnOrder[index], tmp, 10));
+		_itot_s(columnOrder[index], tmp, 2, 10);
+		_tcscat_s(buffer, bufferSize, tmp);
 	}
 
 	return buffer;
@@ -340,7 +341,7 @@ TCHAR *FileListView::getColumnWidths(TCHAR *buffer, int bufferSize)
 		columns = 3;
 
 	TCHAR currentColumn[10];
-	_tcscpy(buffer, _T(""));
+	_tcscpy_s(buffer, bufferSize, _T(""));
 
 	int currentLength = 0;
 	
@@ -352,7 +353,7 @@ TCHAR *FileListView::getColumnWidths(TCHAR *buffer, int bufferSize)
 		{
 			if (columnIndex > 0)
 			{
-				_tcscat(buffer, _T(","));
+				_tcscat_s(buffer, bufferSize, _T(","));
 				currentLength++;
 			}
 		}
@@ -361,11 +362,11 @@ TCHAR *FileListView::getColumnWidths(TCHAR *buffer, int bufferSize)
 
 		
 
-		_itot(columnWidth, currentColumn, 10);
+		_itot_s(columnWidth, currentColumn, 10, 10);
 		
 		if (bufferSize > (currentLength + _tcslen(currentColumn)))
 		{
-			_tcscat(buffer, currentColumn);
+			_tcscat_s(buffer, bufferSize, currentColumn);
 			currentLength += _tcslen(currentColumn);
 		} 
 		else

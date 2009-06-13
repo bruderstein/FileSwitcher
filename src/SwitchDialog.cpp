@@ -40,16 +40,19 @@ LRESULT CALLBACK editProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
  	switch (message)
 	{
 		case WM_KEYDOWN:
+		{
+			SHORT ctrlState = ::GetKeyState(VK_CONTROL) & 0x80;
+			SHORT shiftState = ::GetKeyState(VK_SHIFT) & 0x80;
+
 			extended = ((lParam & 0x01000000) == 0x01000000);
 			if (wParam == VK_DOWN || wParam == VK_UP || (wParam == VK_NEXT && extended) || (wParam == VK_PRIOR && extended)
-                // Removed below to make home and end do their default on the edit box
-				//				|| (wParam == VK_HOME && extended) || (wParam == VK_END && extended)
+				|| ((wParam == VK_HOME || wParam == VK_END) && extended && ((g_options.useHomeForEdit && ctrlState) || (!g_options.useHomeForEdit && !ctrlState && !shiftState)))
                )
 			{
 				::SendMessage(GetParent(hwnd), WM_KEYDOWN, wParam, 0);
 				return TRUE;
 			}
-			
+		}	
 		default:
 			if (g_oldEditProc) 
 			{
@@ -78,13 +81,7 @@ LRESULT CALLBACK listProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 			::SendMessage(GetParent(hwnd), WM_KEYDOWN, wParam, 0);
 			return TRUE;
 		
-		case WM_KEYUP:
-			if (wParam == VK_CONTROL)
-			{
-				::SendMessage(GetParent(hwnd), WM_KEYUP, wParam, 0);
-				return TRUE;
-			}
-			break;
+		
 	
 		case WM_KILLFOCUS:
 			// Ignore the kill focus message, so the highlight bar stays blue
@@ -96,7 +93,14 @@ LRESULT CALLBACK listProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 			dlgCode |= DLGC_WANTTAB;
 			return dlgCode;
 		}
-
+		
+		case WM_KEYUP:
+			if (wParam == VK_CONTROL)
+			{
+				::SendMessage(GetParent(hwnd), WM_KEYUP, wParam, 0);
+				return TRUE;
+			}
+			break;
 		default:
 			if (g_oldListProc) 
 			{
@@ -113,6 +117,18 @@ LRESULT CALLBACK listProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 	
 }
 
+
+TCHAR *fswtcsstr(const TCHAR *str, const TCHAR *substr)
+{
+	return const_cast<TCHAR *>(_tcsstr(str, substr));
+	
+}
+
+TCHAR *fswtcsistr(const TCHAR *str, const TCHAR *substr)
+{
+	return _tcsistr(str, substr);
+	
+}
 
 
 
@@ -394,12 +410,12 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 			{
 				case VK_DOWN:
 				{
-					moveSelectionDown(FALSE);
+					moveSelectionDown(TRUE);
 					return TRUE;
 				}
 				case VK_UP:
 				{
-					moveSelectionUp(FALSE);
+					moveSelectionUp(TRUE);
 					return TRUE;
 				}
 				case VK_NEXT:
@@ -413,7 +429,6 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 					moveSelectionPageUp();
 					return TRUE;
 				}
-				/*
 				case VK_HOME:
 				{
 					moveSelectionTop();
@@ -424,7 +439,7 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 					moveSelectionBottom();
 					return TRUE;
 				}
-				*/
+
 				case VK_TAB:
 				{
 					if (_options->emulateCtrlTab && !_overrideCtrlTab)
@@ -668,6 +683,7 @@ void SwitchDialog::getWindowPosition(RECT &rc)
 }
     
 
+
 void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int selectedEditFileIndex)
 {
 	
@@ -702,11 +718,11 @@ void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int sele
 
 	if (_options->searchFlags & SEARCHFLAG_CASESENSITIVE)
 	{
-		strstrFunc = _tcsstr;
+		strstrFunc = fswtcsstr;
 	}
 	else
 	{
-		strstrFunc = _tcsistr;
+		strstrFunc = fswtcsistr;
 	}
 
 
@@ -734,13 +750,13 @@ void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int sele
 
 			if (_options->searchFlags & SEARCHFLAG_INCLUDEPATH)
 			{
-				TCHAR *searchResult = strstrFunc(iter->second->getPath(), search);
+				TCHAR *searchResult = (*strstrFunc)(iter->second->getPath(), search);
 				if (searchResult == iter->second->getPath())
 					include = true;
 			}
 			if (!include && (_options->searchFlags & SEARCHFLAG_INCLUDEFILENAME))
 			{
-				TCHAR *searchResult = strstrFunc(iter->second->getFilename(), search);
+				TCHAR *searchResult = (*strstrFunc)(iter->second->getFilename(), search);
 				if (searchResult == iter->second->getFilename())
 					include = true;
 			}
@@ -765,17 +781,17 @@ void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int sele
 			if ((_options->searchFlags & SEARCHFLAG_INCLUDEPATH)
 				&& (_options->searchFlags & SEARCHFLAG_INCLUDEFILENAME))
 			{
-				if (strstrFunc(iter->second->getFullFilename(), search))
+				if ((*strstrFunc)(iter->second->getFullFilename(), search))
 					include = true;
 			}
 			else if (_options->searchFlags & SEARCHFLAG_INCLUDEPATH)
 			{
-				if (strstrFunc(iter->second->getPath(), search))
+				if ((*strstrFunc)(iter->second->getPath(), search))
 					include = true;
 			}
 			else if (_options->searchFlags & SEARCHFLAG_INCLUDEFILENAME)
 			{
-				if (strstrFunc(iter->second->getFilename(), search))
+				if ((*strstrFunc)(iter->second->getFilename(), search))
 					include = true;
 			}
 

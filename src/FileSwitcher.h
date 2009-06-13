@@ -31,6 +31,7 @@ extern HIMAGELIST ghImgList;
 #define KEY_AUTOSIZEWINDOW		_T("autoSizeWindow")
 #define KEY_COLUMNFORVIEW       _T("columnForView")
 #define KEY_NODIALOGFORCTRLTAB  _T("noDialogForCtrlTab")
+#define KEY_USEHOMEFOREDIT      _T("useHomeForEdit")
 #define SORT_SETTINGS			_T("Sort")
 #define KEY_DEFAULTSORT			_T("default")
 #define KEY_ACTIVESORT			_T("active")
@@ -82,8 +83,9 @@ struct options_t
 	TCHAR columnOrder[COLUMNORDER_LENGTH];
 	TCHAR columnWidths[COLUMNWIDTH_LENGTH];
 	BOOL noDialogForCtrlTab;
+	BOOL useHomeForEdit;
 };
 
-
+extern options_t g_options;
 
 #endif

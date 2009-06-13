@@ -1,5 +1,11 @@
 File Switcher 
 
+1.0.3.0 
++ FIXED    Use new NPPN_READONLYCHANGED message from Notepad++ 5.4.3 onwards so folds and position is kept when switching docs
++ ADDED    Home/End keys now have an option to default to either the editbox or the listview.  Ctrl-Home/Ctrl-End will use the other one
++ FIXED    Many warnings cleaned up, still lots, but half of them are cleared.
+
+
 1.0.2.0
 + CHANGED  Made colour of selection dark blue, as windows default (patch from ssgsmt)
 + CHANGED  Made home and end keys do default in the edit box

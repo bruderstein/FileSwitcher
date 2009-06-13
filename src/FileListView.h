@@ -7,7 +7,7 @@
 #include <windows.h>
 #include <TCHAR.H>
 #include <commctrl.h>
-#include <resource.h>
+#include "resource.h"
 #include <shellapi.h>
 
 

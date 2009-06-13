@@ -34,10 +34,13 @@ HANDLE				g_hModule			= NULL;
 HIMAGELIST			ghImgList			= NULL;
 TCHAR				iniFilePath[MAX_PATH];
 winVer				gWinVersion			= WV_UNKNOWN;
-struct options_t	options;
+struct options_t	g_options;
 BOOL				_nppReady;
 int					_previousBufferID;
 int					_previousView;
+int					_currentBufferID;
+int					_currentView;
+
 
 /* Maps for lookups */
 EditFileContainer		editFiles;
@@ -70,9 +73,10 @@ EditFile* addEditFile(TCHAR *filename, int view, int index, int bufferID, void* 
 void removeEditFile(int bufferID);
 void updateCurrentStatus(FileStatus status);
 void updateBufferStatus(int bufferID, FileStatus status);
-void updatePreviousDocStatus(void);
+void updateCurrentBuffer();
 void updateCurrentScintillaDoc(int bufferID);
 void clearEditFiles();
+
 
 
 
@@ -93,15 +97,15 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		  funcItem[5]._pFunc = doConfig;
 		  funcItem[6]._pFunc = NULL;
 		  funcItem[7]._pFunc = doAbout;
-		  _tcscpy(funcItem[0]._itemName, _T("Show File Switcher"));
-		  _tcscpy(funcItem[1]._itemName, _T("-----------"));
-		  _tcscpy(funcItem[2]._itemName, _T("Switch to previous document"));
-		  _tcscpy(funcItem[3]._itemName, _T("Switch to next document"));
-		  _tcscpy(funcItem[4]._itemName, _T("-----------"));
-		  _tcscpy(funcItem[5]._itemName, _T("Options"));
-		  _tcscpy(funcItem[6]._itemName, _T("-----------"));
-		  _tcscpy(funcItem[7]._itemName, _T("About"));
 
+		  _tcscpy_s(funcItem[0]._itemName, 64, _T("Show File Switcher"));
+		  _tcscpy_s(funcItem[1]._itemName, 64, _T("-----------"));
+		  _tcscpy_s(funcItem[2]._itemName, 64, _T("Switch to previous document"));
+		  _tcscpy_s(funcItem[3]._itemName, 64, _T("Switch to next document"));
+		  _tcscpy_s(funcItem[4]._itemName, 64, _T("-----------"));
+		  _tcscpy_s(funcItem[5]._itemName, 64, _T("Options"));
+		  _tcscpy_s(funcItem[6]._itemName, 64, _T("-----------"));
+		  _tcscpy_s(funcItem[7]._itemName, 64, _T("About"));
 		  funcItem[0]._init2Check = false;
 		  funcItem[1]._init2Check = false;
 		  funcItem[2]._init2Check = false;
@@ -110,7 +114,6 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		  funcItem[5]._init2Check = false;
 		  funcItem[6]._init2Check = false;
 		  funcItem[7]._init2Check = false;
-
 		  funcItem[0]._pShKey = new ShortcutKey;
 		  funcItem[0]._pShKey->_isAlt = false;
 		  funcItem[0]._pShKey->_isCtrl = true;
@@ -152,9 +155,9 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 extern "C" __declspec(dllexport) void setInfo(NppData notepadPlusData)
 {
 	nppData = notepadPlusData;
-	switchDlg.init((HINSTANCE)g_hModule, nppData, &options, &typedForFile, &configDlg);
+	switchDlg.init((HINSTANCE)g_hModule, nppData, &g_options, &typedForFile, &configDlg);
 	aboutDlg.init((HINSTANCE)g_hModule, nppData);
-	configDlg.init((HINSTANCE)g_hModule, nppData, &options);
+	configDlg.init((HINSTANCE)g_hModule, nppData, &g_options);
 
 	gWinVersion  = (winVer)::SendMessage(nppData._nppHandle, NPPM_GETWINDOWSVERSION, 0, 0);
 	loadSettings();
@@ -191,7 +194,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 					&& !(shKey._isAlt)
 					&& !(shKey._isShift))
 				{
-					options.emulateCtrlTab = true;
+					g_options.emulateCtrlTab = true;
 				}
 			}
 
@@ -218,11 +221,11 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 					&& !sKey->_isAlt 
 					&& !sKey->_isShift)
 				{
-					options.emulateCtrlTab = TRUE;
+					g_options.emulateCtrlTab = TRUE;
 				}
 				else
 				{
-					options.emulateCtrlTab = FALSE;
+					g_options.emulateCtrlTab = FALSE;
 				}
 			}
 			break;
@@ -238,59 +241,51 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			break;
 
 		case NPPN_BUFFERACTIVATED:
-			updateCurrentScintillaDoc(notifyCode->nmhdr.idFrom);
+			_currentBufferID = notifyCode->nmhdr.idFrom;
+			::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&_currentView));
+			updateCurrentBuffer();
+			break;
 
-			if (_nppReady)
+		case NPPN_READONLYCHANGED:
+		{
+			FileStatus newStatus;
+			if (notifyCode->nmhdr.idFrom & 1)
 			{
-				updatePreviousDocStatus();
+				newStatus = READONLY;
 			}
 			else
 			{
-				BOOL readonly = ::SendMessage((HWND)notifyCode->nmhdr.hwndFrom, SCI_GETREADONLY, 0, 0);
-				if (readonly)
-					updateCurrentStatus(READONLY);
+				if (notifyCode->nmhdr.idFrom & 2)
+					newStatus = UNSAVED;
 				else
-				{
-					EditFileContainer::iterator current = editFiles.find(notifyCode->nmhdr.idFrom);
-					if (current != editFiles.end())
-					{
-						int currentView;
-						::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&currentView));
-						int modified = ::SendMessage(getCurrentHScintilla(currentView), SCI_GETMODIFY, 0, 0);
-						if (modified)
-							updateCurrentStatus(UNSAVED);
-						else
-							updateCurrentStatus(SAVED);
-					}
-				}
-					
-						
+					newStatus = SAVED;
+				
 			}
-			
-			_previousBufferID = notifyCode->nmhdr.idFrom;
-			::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&_previousView));
+			updateBufferStatus(reinterpret_cast<int>(notifyCode->nmhdr.hwndFrom), newStatus);
 
-			break;
-
-	}
-
-	if (notifyCode->nmhdr.hwndFrom == nppData._scintillaMainHandle 
-		|| notifyCode->nmhdr.hwndFrom == nppData._scintillaSecondHandle)
-	{
-		BOOL readonly = ::SendMessage((HWND)notifyCode->nmhdr.hwndFrom, SCI_GETREADONLY, 0, 0);
-
-		switch (notifyCode->nmhdr.code)
-		{
-
-			case SCN_SAVEPOINTLEFT:
-				updateCurrentStatus(UNSAVED);
-			break;
-
-			case SCN_SAVEPOINTREACHED:
-				updateCurrentStatus(SAVED);
-			break;
+			break;	
 		}
+		
+		case SCN_SAVEPOINTLEFT:
+			if (notifyCode->nmhdr.hwndFrom == nppData._scintillaMainHandle 
+				|| notifyCode->nmhdr.hwndFrom == nppData._scintillaSecondHandle)
+			{
+				updateCurrentStatus(UNSAVED);
+			}
+			break;
+
+		case SCN_SAVEPOINTREACHED:
+			if (notifyCode->nmhdr.hwndFrom == nppData._scintillaMainHandle 
+				|| notifyCode->nmhdr.hwndFrom == nppData._scintillaSecondHandle)
+			{
+				updateCurrentStatus(SAVED);
+			}
+			break;
+
+
 	}
+
+	
 
 }
 
@@ -328,19 +323,8 @@ void showSwitchDialog(BOOL ignoreCtrlTab, BOOL previousFile)
 
 	int currentView;
 	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&currentView));
-	BOOL readonly = ::SendMessage(getCurrentHScintilla(currentView), SCI_GETREADONLY, 0, 0);
-	
-	if (readonly)
-		updateCurrentStatus(READONLY);
-	else
-	{
-		int modified = ::SendMessage(getCurrentHScintilla(currentView), SCI_GETMODIFY, 0, 0);
-		if (modified)
-			updateCurrentStatus(UNSAVED);
-		else
-			updateCurrentStatus(SAVED);
-	}
-	
+	updateCurrentBuffer();
+
 	for(int view = 0; view < 2; view++)
 	{
 		if (nbFile[view] && selectedTab[view] >= 0)
@@ -409,7 +393,7 @@ void showSwitchDialogNormal()
 
 void showSwitchDialogNext()
 {
-	if (options.emulateCtrlTab && !options.noDialogForCtrlTab)
+	if (g_options.emulateCtrlTab && !g_options.noDialogForCtrlTab)
 	{
 		showSwitchDialog(FALSE, FALSE);
 	}
@@ -430,7 +414,7 @@ void showSwitchDialogNext()
 
 void showSwitchDialogPrevious()
 {
-	if (options.emulateCtrlTab && !options.noDialogForCtrlTab)
+	if (g_options.emulateCtrlTab && !g_options.noDialogForCtrlTab)
 	{
 		showSwitchDialog(FALSE, TRUE);
 	}
@@ -540,7 +524,22 @@ void updateCurrentStatus(FileStatus status)
 	
 }
 
-
+void updateCurrentBuffer()
+{
+	BOOL readonly = ::SendMessage(getCurrentHScintilla(_currentView), SCI_GETREADONLY, 0, 0);
+	
+	if (readonly)
+		updateCurrentStatus(READONLY);
+	else
+	{
+		int modified = ::SendMessage(getCurrentHScintilla(_currentView), SCI_GETMODIFY, 0, 0);
+		if (modified)
+			updateCurrentStatus(UNSAVED);
+		else
+			updateCurrentStatus(SAVED);
+	}
+	
+}
 
 
 struct DeleteObject {
@@ -568,15 +567,17 @@ void doConfig()
 	configDlg.doModal(nppData._nppHandle);
 }
 
-
+/*
 void updatePreviousDocStatus(void)
 {
 	if (0 == _previousBufferID)
 		return;
 
-	//int currentView;
+	int currentView;
+	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&currentView));
+	int currentIndex = ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDOCINDEX, currentView, 0);
+
 	
-	//::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&currentView));
 	EditFileContainer::iterator previous = editFiles.find(_previousBufferID);
 	if (previous != editFiles.end())
 	{
@@ -614,12 +615,13 @@ void updatePreviousDocStatus(void)
 			::SendMessage(previousScintilla, SCI_SETCURRENTPOS, currentPos, 0);
 			::SendMessage(previousScintilla, SCI_SETXOFFSET, xOffset, 0);
 			::SendMessage(previousScintilla, SCI_LINESCROLL, 0, lineToShow);
+			
 		}
 
 		
 	}
 }
-
+*/
 
 void updateCurrentScintillaDoc(int bufferID)
 {
@@ -654,8 +656,8 @@ void loadSettings(void)
 
 	
 	
-	_tcscpy(iniFilePath, configPath);
-	_tcscat(iniFilePath, FILESWITCHER_INI);
+	_tcscpy_s(iniFilePath, MAX_PATH, configPath);
+	_tcscat_s(iniFilePath, MAX_PATH, FILESWITCHER_INI);
 	if (PathFileExists(iniFilePath) == FALSE)
 	{
 		::CloseHandle(::CreateFile(iniFilePath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
@@ -673,26 +675,27 @@ void loadSettings(void)
 		switchDlg.setWindowPosition(dialogX, dialogY, dialogWidth, dialogHeight);
 	}
 
-	options.searchFlags = ::GetPrivateProfileInt(SEARCH_SETTINGS, KEY_SEARCHFLAGS, SEARCHFLAG_INCLUDEFILENAME, iniFilePath);
-	if (options.searchFlags == 0)
-		options.searchFlags = SEARCHFLAG_INCLUDEFILENAME;
+	g_options.searchFlags = ::GetPrivateProfileInt(SEARCH_SETTINGS, KEY_SEARCHFLAGS, SEARCHFLAG_INCLUDEFILENAME, iniFilePath);
+	if (g_options.searchFlags == 0)
+		g_options.searchFlags = SEARCHFLAG_INCLUDEFILENAME;
 
 	// This will be set later, when we check the shortcut key of the "Switch to Next" command
-	options.emulateCtrlTab = FALSE;
+	g_options.emulateCtrlTab = FALSE;
 
-	options.resetSortOrder = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_RESETSORT, 0, iniFilePath);
-	options.defaultSortOrder = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_DEFAULTSORT, 0, iniFilePath);
-	options.activeSortOrder = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_ACTIVESORT, 0, iniFilePath);
-	options.overrideSortWhenTabbing = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_OVERRIDESORT, 0, iniFilePath);
-	options.revertSortWhenTabbing = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_REVERTSORT, 0, iniFilePath);
-	options.onlyUseCurrentView = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_ONLYUSECURRENTVIEW, 0, iniFilePath);
-	options.autoSizeColumns = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_AUTOSIZECOLUMNS, 0, iniFilePath);
-	options.autoSizeWindow = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_AUTOSIZEWINDOW, 0, iniFilePath);
-	options.columnForView = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_COLUMNFORVIEW, 0, iniFilePath);
-	options.noDialogForCtrlTab = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_NODIALOGFORCTRLTAB, 0, iniFilePath);
-	
-	::GetPrivateProfileString(LISTVIEW_SETTINGS, KEY_COLUMNORDER, _T("012"), options.columnOrder, COLUMNORDER_LENGTH, iniFilePath);
-	::GetPrivateProfileString(LISTVIEW_SETTINGS, KEY_COLUMNWIDTHS, _T("160,100,60"), options.columnWidths, COLUMNWIDTH_LENGTH, iniFilePath);
+	g_options.resetSortOrder = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_RESETSORT, 0, iniFilePath);
+	g_options.defaultSortOrder = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_DEFAULTSORT, 0, iniFilePath);
+	g_options.activeSortOrder = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_ACTIVESORT, 0, iniFilePath);
+	g_options.overrideSortWhenTabbing = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_OVERRIDESORT, 0, iniFilePath);
+	g_options.revertSortWhenTabbing = ::GetPrivateProfileInt(SORT_SETTINGS, KEY_REVERTSORT, 0, iniFilePath);
+	g_options.onlyUseCurrentView = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_ONLYUSECURRENTVIEW, 0, iniFilePath);
+	g_options.autoSizeColumns = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_AUTOSIZECOLUMNS, 0, iniFilePath);
+	g_options.autoSizeWindow = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_AUTOSIZEWINDOW, 0, iniFilePath);
+	g_options.columnForView = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_COLUMNFORVIEW, 0, iniFilePath);
+	g_options.noDialogForCtrlTab = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_NODIALOGFORCTRLTAB, 0, iniFilePath);
+	g_options.useHomeForEdit = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_USEHOMEFOREDIT, 0, iniFilePath);
+
+	::GetPrivateProfileString(LISTVIEW_SETTINGS, KEY_COLUMNORDER, _T("012"), g_options.columnOrder, COLUMNORDER_LENGTH, iniFilePath);
+	::GetPrivateProfileString(LISTVIEW_SETTINGS, KEY_COLUMNWIDTHS, _T("160,100,60"), g_options.columnWidths, COLUMNWIDTH_LENGTH, iniFilePath);
 	
 }
 
@@ -706,16 +709,16 @@ void saveSettings(void)
 		RECT rc;
 		switchDlg.getWindowPosition(rc);
 
-		_itot(rc.left, temp, 10);
+		_itot_s(rc.left, temp, 16, 10);
 		::WritePrivateProfileString(WINDOW_SETTINGS, KEY_WINDOWX, temp, iniFilePath);
 
-		_itot(rc.top, temp, 10);
+		_itot_s(rc.top, temp, 16, 10);
 		::WritePrivateProfileString(WINDOW_SETTINGS, KEY_WINDOWY, temp, iniFilePath);
 
-		_itot(rc.right - rc.left, temp, 10);
+		_itot_s(rc.right - rc.left, temp, 16, 10);
 		::WritePrivateProfileString(WINDOW_SETTINGS, KEY_WINDOWWIDTH, temp, iniFilePath);
 
-		_itot(rc.bottom - rc.top, temp, 10);
+		_itot_s(rc.bottom - rc.top, temp, 16, 10);
 		::WritePrivateProfileString(WINDOW_SETTINGS, KEY_WINDOWHEIGHT, temp, iniFilePath);
 
 		TCHAR columnInfo[50];
@@ -728,40 +731,44 @@ void saveSettings(void)
 
 	}
 
-	_itot(options.activeSortOrder, temp, 10);
+	_itot_s(g_options.activeSortOrder, temp, 16, 10);
 	::WritePrivateProfileString(SORT_SETTINGS, KEY_ACTIVESORT, temp, iniFilePath);
 
-	_itot(options.searchFlags, temp, 10);
+	_itot_s(g_options.searchFlags, temp, 16, 10);
 	::WritePrivateProfileString(SEARCH_SETTINGS, KEY_SEARCHFLAGS, temp, iniFilePath);
 
-	_itot(options.defaultSortOrder, temp, 10);
+	_itot_s(g_options.defaultSortOrder, temp, 16, 10);
 	::WritePrivateProfileString(SORT_SETTINGS, KEY_DEFAULTSORT, temp, iniFilePath);
 
-	_itot(options.resetSortOrder, temp, 10);
+	_itot_s(g_options.resetSortOrder, temp, 16, 10);
 	::WritePrivateProfileString(SORT_SETTINGS, KEY_RESETSORT, temp, iniFilePath);
 
-	_itot(options.overrideSortWhenTabbing, temp, 10);
+	_itot_s(g_options.overrideSortWhenTabbing, temp, 16, 10);
 	::WritePrivateProfileString(SORT_SETTINGS, KEY_OVERRIDESORT, temp, iniFilePath);
 
-	_itot(options.revertSortWhenTabbing, temp, 10);
+	_itot_s(g_options.revertSortWhenTabbing, temp, 16, 10);
 	::WritePrivateProfileString(SORT_SETTINGS, KEY_REVERTSORT, temp, iniFilePath);
 
-	_itot(options.onlyUseCurrentView, temp, 10);
+	_itot_s(g_options.onlyUseCurrentView, temp, 16, 10);
 	::WritePrivateProfileString(GENERAL_SETTINGS, KEY_ONLYUSECURRENTVIEW, temp, iniFilePath);
 
-	_itot(options.autoSizeColumns, temp, 10);
+	_itot_s(g_options.autoSizeColumns, temp, 16, 10);
 	::WritePrivateProfileString(GENERAL_SETTINGS, KEY_AUTOSIZECOLUMNS, temp, iniFilePath);
 
-	_itot(options.autoSizeWindow, temp, 10);
+	_itot_s(g_options.autoSizeWindow, temp, 16, 10);
 	::WritePrivateProfileString(GENERAL_SETTINGS, KEY_AUTOSIZEWINDOW, temp, iniFilePath);
 
-	_itot(options.noDialogForCtrlTab, temp, 10);
+	_itot_s(g_options.noDialogForCtrlTab, temp, 16, 10);
 	::WritePrivateProfileString(GENERAL_SETTINGS, KEY_NODIALOGFORCTRLTAB, temp, iniFilePath);
 
-	_itot(options.columnForView, temp, 10);
+	_itot_s(g_options.columnForView, temp, 16, 10);
 	::WritePrivateProfileString(GENERAL_SETTINGS, KEY_COLUMNFORVIEW, temp, iniFilePath);
 
+	_itot_s(g_options.useHomeForEdit, temp, 16, 10);
+	::WritePrivateProfileString(GENERAL_SETTINGS, KEY_USEHOMEFOREDIT, temp, iniFilePath);
+
 }
+
 
 
 #ifdef _MANAGED

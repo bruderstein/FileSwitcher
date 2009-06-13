@@ -59,6 +59,12 @@ void ConfigDialog::initialiseOptions()
 	else
 		::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEVIEW, BM_SETCHECK, BST_UNCHECKED, 0);
 
+	if (_options->useHomeForEdit)
+		::SendDlgItemMessage(_hSelf, IDC_CHECKUSEHOMEFOREDIT, BM_SETCHECK, BST_CHECKED, 0);
+	else
+		::SendDlgItemMessage(_hSelf, IDC_CHECKUSEHOMEFOREDIT, BM_SETCHECK, BST_UNCHECKED, 0);
+
+
 
 	switch(LOBYTE(_options->defaultSortOrder))
 	{
@@ -350,6 +356,12 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 							_options->noDialogForCtrlTab = FALSE;
 						else
 							_options->noDialogForCtrlTab = TRUE;
+
+						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKUSEHOMEFOREDIT, BM_GETCHECK, 0, 0);
+						if (BST_CHECKED == result)
+							_options->useHomeForEdit = TRUE;
+						else
+							_options->useHomeForEdit = FALSE;
 
 						
 
