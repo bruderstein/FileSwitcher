@@ -4,6 +4,10 @@
 #include "StaticDialog.h"
 #include "FileSwitcher.h"
 
+#ifndef PLUGININTERFACE_H
+#include "PluginInterface.h"
+#endif
+
 class ConfigDialog : public StaticDialog
 {
 public:
@@ -24,16 +28,15 @@ public:
 	~ConfigDialog(void) {}
 
 protected :
-	virtual BOOL CALLBACK run_dlgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+	BOOL CALLBACK run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
 
 private:
 	NppData			_nppData;
     HWND			_HSource;
-	
+
 	BOOL			_isModal;
 
 	struct options_t *_options;
 
 	void ConfigDialog::initialiseOptions();
-
 };

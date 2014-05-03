@@ -1,27 +1,19 @@
 // BufferSwitcher.cpp : Defines the entry point for the DLL application.
 //
 
-#include "stdafx.h"
+#include <precompiledHeaders.h>
 #include "FileSwitcher.h"
 #include "PluginInterface.h"
 #include "SwitchDialog.h"
 #include "AboutDialog.h"
 #include "ConfigDialog.h"
 #include <windows.h>
-#include <TCHAR.H>
-#include <shlwapi.h>
-#include <map>
-#include <string>
-
-
 
 #ifdef _MANAGED
 #pragma managed(push, off)
 #endif
 
-
 using namespace std;
-
 
 /* Info for Notepad++ */
 CONST TCHAR PLUGIN_NAME[]	= _T("File Switcher");
@@ -41,23 +33,15 @@ int					_previousView;
 int					_currentBufferID;
 int					_currentView;
 
-
 /* Maps for lookups */
 EditFileContainer		editFiles;
 FilenameContainer		filenameMap;
 map<int, TCHAR *>		typedForFile;
 
-
 /* Dialogs */
 SwitchDialog	switchDlg;
 AboutDialog		aboutDlg;
 ConfigDialog	configDlg;
-
-
-
-
-
-
 
 void showSwitchDialog(BOOL ignoreCtrlTab, BOOL previousFile);
 void showSwitchDialogNormal();
@@ -76,9 +60,6 @@ void updateBufferStatus(int bufferID, FileStatus status);
 void updateCurrentBuffer();
 void updateCurrentScintillaDoc(int bufferID);
 void clearEditFiles();
-
-
-
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -127,7 +108,6 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		  funcItem[6]._pShKey = NULL;
 		  funcItem[7]._pShKey = NULL;
 
-		  
 		  /* create image list with icons */
 		  ghImgList = ImageList_Create(16, 16, ILC_COLOR32 | ILC_MASK, 6, 30);
 		  ImageList_AddIcon(ghImgList, ::LoadIcon((HINSTANCE)g_hModule, MAKEINTRESOURCE(IDI_SAVED)));
@@ -161,7 +141,6 @@ extern "C" __declspec(dllexport) void setInfo(NppData notepadPlusData)
 
 	gWinVersion  = (winVer)::SendMessage(nppData._nppHandle, NPPM_GETWINDOWSVERSION, 0, 0);
 	loadSettings();
-
 }
 
 extern "C" __declspec(dllexport) CONST TCHAR * getName()
@@ -190,7 +169,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			if (::SendMessage(nppData._nppHandle, NPPM_GETSHORTCUTBYCMDID, funcItem[3]._cmdID, reinterpret_cast<LPARAM>(&shKey)))
 			{
 				if (shKey._key == 0x09  // TAB
-					&& shKey._isCtrl 
+					&& shKey._isCtrl
 					&& !(shKey._isAlt)
 					&& !(shKey._isShift))
 				{
@@ -216,9 +195,9 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			if (notifyCode->nmhdr.idFrom == funcItem[3]._cmdID)
 			{
 				ShortcutKey *sKey = (ShortcutKey*)(notifyCode->nmhdr.hwndFrom);
-				if (sKey->_key == VK_TAB 
-					&& sKey->_isCtrl 
-					&& !sKey->_isAlt 
+				if (sKey->_key == VK_TAB
+					&& sKey->_isCtrl
+					&& !sKey->_isAlt
 					&& !sKey->_isShift)
 				{
 					g_options.emulateCtrlTab = TRUE;
@@ -234,7 +213,6 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			saveSettings();
 			clearEditFiles();
 			break;
-
 
 		case NPPN_FILEOPENED:
 			addEditFile(notifyCode->nmhdr.idFrom);
@@ -259,15 +237,14 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 					newStatus = UNSAVED;
 				else
 					newStatus = SAVED;
-				
 			}
 			updateBufferStatus(reinterpret_cast<int>(notifyCode->nmhdr.hwndFrom), newStatus);
 
-			break;	
+			break;
 		}
-		
+
 		case SCN_SAVEPOINTLEFT:
-			if (notifyCode->nmhdr.hwndFrom == nppData._scintillaMainHandle 
+			if (notifyCode->nmhdr.hwndFrom == nppData._scintillaMainHandle
 				|| notifyCode->nmhdr.hwndFrom == nppData._scintillaSecondHandle)
 			{
 				updateCurrentStatus(UNSAVED);
@@ -275,25 +252,19 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 			break;
 
 		case SCN_SAVEPOINTREACHED:
-			if (notifyCode->nmhdr.hwndFrom == nppData._scintillaMainHandle 
+			if (notifyCode->nmhdr.hwndFrom == nppData._scintillaMainHandle
 				|| notifyCode->nmhdr.hwndFrom == nppData._scintillaSecondHandle)
 			{
 				updateCurrentStatus(SAVED);
 			}
 			break;
-
-
 	}
-
-	
-
 }
 
 extern "C" __declspec(dllexport) LRESULT messageProc(UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	return TRUE;
 }
-
 
 #ifdef _UNICODE
 extern "C" __declspec(dllexport) BOOL isUnicode()
@@ -302,10 +273,8 @@ extern "C" __declspec(dllexport) BOOL isUnicode()
 }
 #endif
 
-
 void showSwitchDialog(BOOL ignoreCtrlTab, BOOL previousFile)
 {
-	
 	int nbFile[2];
 	nbFile[0] = (int)::SendMessage(nppData._nppHandle, NPPM_GETNBOPENFILES, 0, PRIMARY_VIEW);
 	nbFile[1] = (int)::SendMessage(nppData._nppHandle, NPPM_GETNBOPENFILES, 0, SECOND_VIEW);
@@ -314,7 +283,6 @@ void showSwitchDialog(BOOL ignoreCtrlTab, BOOL previousFile)
 	selectedTab[0] = (INT)::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDOCINDEX, 0, MAIN_VIEW);
 	selectedTab[1] = (INT)::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDOCINDEX, 0, SUB_VIEW);
 
-	
 	// Clear the view/index arrays in each EditFile
 	for(EditFileContainer::iterator iter = editFiles.begin(); iter != editFiles.end(); iter++)
 	{
@@ -335,19 +303,17 @@ void showSwitchDialog(BOOL ignoreCtrlTab, BOOL previousFile)
 				fileNames[i] = new TCHAR[MAX_PATH];
 			}
 
-			if (::SendMessage(nppData._nppHandle, view ? NPPM_GETOPENFILENAMESSECOND : NPPM_GETOPENFILENAMESPRIMARY, 
+			if (::SendMessage(nppData._nppHandle, view ? NPPM_GETOPENFILENAMESSECOND : NPPM_GETOPENFILENAMESPRIMARY,
 							reinterpret_cast<WPARAM>(fileNames), static_cast<LPARAM>(nbFile[view])))
 			{
-
 				int bufferID;
 				tstring filenameString;
 				for(int position = 0; position < nbFile[view]; position++)
 				{
-					
 					filenameString = fileNames[position];
 					FilenameContainer::iterator filenameIterator = filenameMap.lower_bound(filenameString);
 					FilenameContainer::iterator upperBoundIterator = filenameMap.upper_bound(filenameString);
-					
+
 					void* scintillaDoc = NULL;
 					while(filenameIterator != upperBoundIterator
 						  && filenameIterator->second->getView() >= 0)
@@ -356,40 +322,29 @@ void showSwitchDialog(BOOL ignoreCtrlTab, BOOL previousFile)
 						++filenameIterator;
 					}
 
-				
-
 					if (filenameIterator == filenameMap.end()
 						|| filenameIterator->first != filenameString)
 					{
-						bufferID = ::SendMessage(nppData._nppHandle, NPPM_GETBUFFERIDFROMPOS, position, view);	
-					
+						bufferID = ::SendMessage(nppData._nppHandle, NPPM_GETBUFFERIDFROMPOS, position, view);
+
 						addEditFile(fileNames[position], view, position, bufferID, scintillaDoc);
 					}
-					else 
+					else
 					{
-						
 						filenameIterator->second->setIndex(view, position);
-						
 					}
-					
 				}
-
-
-				
 			}
 		}
 	}
 
 	switchDlg.doDialog(editFiles, ignoreCtrlTab, previousFile);
-	
 }
-
 
 void showSwitchDialogNormal()
 {
 		showSwitchDialog(TRUE, FALSE);
 }
-
 
 void showSwitchDialogNext()
 {
@@ -411,7 +366,6 @@ void showSwitchDialogNext()
 	}
 }
 
-
 void showSwitchDialogPrevious()
 {
 	if (g_options.emulateCtrlTab && !g_options.noDialogForCtrlTab)
@@ -422,7 +376,7 @@ void showSwitchDialogPrevious()
 	{
 		int currentView;
 		::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&currentView));
-		
+
 		int position = ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDOCINDEX, 0, currentView);
 		if (position > 0)
 		{
@@ -438,22 +392,21 @@ void showSwitchDialogPrevious()
 	}
 }
 
-
 EditFile* addEditFile(TCHAR *filename, int view, int index, int bufferID, void* scintillaDoc)
 {
 	EditFile *editFile = new EditFile(view, index, filename, 0, bufferID, scintillaDoc);
-	
+
 	multimap<tstring, EditFile*>::iterator iter = filenameMap.find(filename);
-	
+
 	FileStatus status = SAVED;
-	
+
 	if (iter != filenameMap.end())
 		status = iter->second->getFileStatus();
-	
+
 	editFile->setFileStatus(status);
 
 	editFiles.insert(EditFileContainer::value_type(bufferID, editFile));
-	
+
 	tstring filenameString = filename;
 	filenameMap.insert(multimap<tstring, EditFile*>::value_type(filenameString, editFile));
 
@@ -465,11 +418,11 @@ EditFile* addEditFile(int bufferID)
 	TCHAR filePath[MAX_PATH];
 	::SendMessage(nppData._nppHandle, NPPM_GETFULLPATHFROMBUFFERID, bufferID, reinterpret_cast<LPARAM>(filePath));
 	int index = ::SendMessage(nppData._nppHandle, NPPM_GETPOSFROMBUFFERID, bufferID, reinterpret_cast<LPARAM>(filePath));
-	
+
 	BOOL readonly = ::SendMessage(getCurrentHScintilla(VIEW(index)), SCI_GETREADONLY, 0, 0);
 	//void* pDoc = reinterpret_cast<void*>(::SendMessage(getCurrentHScintilla(VIEW(index)), SCI_GETDOCPOINTER, 0, 0));
 
-	EditFile* editFile = addEditFile(filePath, VIEW(index), INDEX(index), bufferID, 0);	
+	EditFile* editFile = addEditFile(filePath, VIEW(index), INDEX(index), bufferID, 0);
 
 	if (readonly)
 		editFile->setFileStatus(READONLY);
@@ -479,20 +432,17 @@ EditFile* addEditFile(int bufferID)
 
 void removeEditFile(int bufferID)
 {
-	
 	tstring filename;
 	// Free the EditFile
 	EditFileContainer::iterator iter = editFiles.find(bufferID);
 	if (iter != editFiles.end())
 	{
-
 		filename = iter->second->getFullFilename();
 		do {
 			delete iter->second;
 			++iter;
-		} while (iter != editFiles.end() 
+		} while (iter != editFiles.end()
 			     && iter->second->getBufferID() == bufferID);
-
 
 		// Erase the EditFile from the two lookup maps
 		filenameMap.erase(filename);
@@ -505,11 +455,11 @@ void updateBufferStatus(int bufferID, FileStatus status)
 	EditFileContainer::iterator iter = editFiles.lower_bound(bufferID);
 	EditFileContainer::iterator ub = editFiles.upper_bound(bufferID);
 
-	while (iter != ub) 
+	while (iter != ub)
 	{
 		iter->second->setFileStatus(status);
 		++iter;
-	} 
+	}
 }
 
 void updateCurrentStatus(FileStatus status)
@@ -521,13 +471,12 @@ void updateCurrentStatus(FileStatus status)
 	}
 
 	updateBufferStatus(bufferID, status);
-	
 }
 
 void updateCurrentBuffer()
 {
 	BOOL readonly = ::SendMessage(getCurrentHScintilla(_currentView), SCI_GETREADONLY, 0, 0);
-	
+
 	if (readonly)
 		updateCurrentStatus(READONLY);
 	else
@@ -538,9 +487,7 @@ void updateCurrentBuffer()
 		else
 			updateCurrentStatus(SAVED);
 	}
-	
 }
-
 
 struct DeleteObject {
 	template<typename T>
@@ -549,7 +496,6 @@ struct DeleteObject {
 		delete p;
 	}
 };
-
 
 void clearEditFiles()
 {
@@ -577,7 +523,6 @@ void updatePreviousDocStatus(void)
 	::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&currentView));
 	int currentIndex = ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDOCINDEX, currentView, 0);
 
-	
 	EditFileContainer::iterator previous = editFiles.find(_previousBufferID);
 	if (previous != editFiles.end())
 	{
@@ -615,10 +560,7 @@ void updatePreviousDocStatus(void)
 			::SendMessage(previousScintilla, SCI_SETCURRENTPOS, currentPos, 0);
 			::SendMessage(previousScintilla, SCI_SETXOFFSET, xOffset, 0);
 			::SendMessage(previousScintilla, SCI_LINESCROLL, 0, lineToShow);
-			
 		}
-
-		
 	}
 }
 */
@@ -633,15 +575,12 @@ void updateCurrentScintillaDoc(int bufferID)
 	EditFileContainer::iterator iter = editFiles.lower_bound(bufferID);
 	EditFileContainer::iterator ub = editFiles.upper_bound(bufferID);
 
-	while (iter != ub) 
+	while (iter != ub)
 	{
 		iter->second->setScintillaDoc(currentDoc);
 		++iter;
-	} 
+	}
 }
-
-
-
 
 void loadSettings(void)
 {
@@ -654,22 +593,20 @@ void loadSettings(void)
 		::CreateDirectory(configPath, NULL);
 	}
 
-	
-	
 	_tcscpy_s(iniFilePath, MAX_PATH, configPath);
 	_tcscat_s(iniFilePath, MAX_PATH, FILESWITCHER_INI);
 	if (PathFileExists(iniFilePath) == FALSE)
 	{
 		::CloseHandle(::CreateFile(iniFilePath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL));
 	}
-	
+
 	int dialogX, dialogY, dialogWidth, dialogHeight;
 
 	dialogX = ::GetPrivateProfileInt(WINDOW_SETTINGS, KEY_WINDOWX, -1, iniFilePath);
 	dialogY = ::GetPrivateProfileInt(WINDOW_SETTINGS, KEY_WINDOWY, DIALOGY_DEFAULT, iniFilePath);
 	dialogWidth = ::GetPrivateProfileInt(WINDOW_SETTINGS, KEY_WINDOWWIDTH, DIALOGWIDTH_DEFAULT, iniFilePath);
 	dialogHeight = ::GetPrivateProfileInt(WINDOW_SETTINGS, KEY_WINDOWHEIGHT, DIALOGHEIGHT_DEFAULT, iniFilePath);
-	
+
 	if (dialogX != -1)
 	{
 		switchDlg.setWindowPosition(dialogX, dialogY, dialogWidth, dialogHeight);
@@ -696,14 +633,12 @@ void loadSettings(void)
 
 	::GetPrivateProfileString(LISTVIEW_SETTINGS, KEY_COLUMNORDER, _T("012"), g_options.columnOrder, COLUMNORDER_LENGTH, iniFilePath);
 	::GetPrivateProfileString(LISTVIEW_SETTINGS, KEY_COLUMNWIDTHS, _T("160,100,60"), g_options.columnWidths, COLUMNWIDTH_LENGTH, iniFilePath);
-	
 }
-
 
 void saveSettings(void)
 {
 	TCHAR temp[16];
-	
+
 	if (switchDlg.isCreated())
 	{
 		RECT rc;
@@ -727,8 +662,6 @@ void saveSettings(void)
 
 		switchDlg.getColumnWidths(columnInfo, 50);
 		::WritePrivateProfileString(LISTVIEW_SETTINGS, KEY_COLUMNWIDTHS, columnInfo, iniFilePath);
-
-
 	}
 
 	_itot_s(g_options.activeSortOrder, temp, 16, 10);
@@ -766,10 +699,7 @@ void saveSettings(void)
 
 	_itot_s(g_options.useHomeForEdit, temp, 16, 10);
 	::WritePrivateProfileString(GENERAL_SETTINGS, KEY_USEHOMEFOREDIT, temp, iniFilePath);
-
 }
-
-
 
 #ifdef _MANAGED
 #pragma managed(pop)

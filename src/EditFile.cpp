@@ -1,5 +1,4 @@
-#include "StdAfx.h"
-#include <tchar.h>
+#include <precompiledHeaders.h>
 #include "EditFile.h"
 
 EditFile::EditFile(void)
@@ -15,7 +14,7 @@ EditFile::EditFile(int view, int index, CONST TCHAR* filename, int searchFlags, 
 	int filenameLength = _tcslen(filename);
 	_fullFilename = new TCHAR[filenameLength + 1];
 	_tcscpy_s(_fullFilename, filenameLength + 1, filename);
-	
+
 	int position, filenameOffset = 1;
 	for (position = filenameLength; position >= 0 && _fullFilename[position] != '\\'; position--)
 		;
@@ -27,13 +26,12 @@ EditFile::EditFile(int view, int index, CONST TCHAR* filename, int searchFlags, 
 
 	_path = new TCHAR[position + 1];
 	int filenameOnlyLength = (filenameLength - position) + 1;
-	_filename = new TCHAR[filenameOnlyLength]; 
+	_filename = new TCHAR[filenameOnlyLength];
 	_display = new TCHAR[filenameLength + 5];
 	_tcsncpy_s(_path, position + 1, _fullFilename, position);
 	_path[position] = '\0';
 	_tcscpy_s(_filename, filenameOnlyLength, (_fullFilename + position + filenameOffset));
 
-	
 	_dataSet = true;
 	_indexString = NULL;
 	_viewString = NULL;
@@ -41,10 +39,7 @@ EditFile::EditFile(int view, int index, CONST TCHAR* filename, int searchFlags, 
 	_bufferID = bufferID;
 	_fileStatus = SAVED;
 	_scintillaDoc = scintillaDoc;
-
 }
-
-
 
 EditFile::~EditFile(void)
 {
@@ -61,8 +56,6 @@ EditFile::~EditFile(void)
 	}
 }
 
-
-
 TCHAR *EditFile::getFilename()
 {
 	return _filename;
@@ -77,8 +70,6 @@ TCHAR *EditFile::getFullFilename()
 {
 	return _fullFilename;
 }
-
-
 
 int EditFile::getIndex()
 {
@@ -95,7 +86,7 @@ TCHAR *EditFile::getIndexString(BOOL includeView)
 
 		if (_view == 1 && includeView)
 			length += 4;
-	
+
 		_indexString = new TCHAR[length + 1];
 
 		if (_view == 1 && includeView)
@@ -105,13 +96,9 @@ TCHAR *EditFile::getIndexString(BOOL includeView)
 		}
 		else
 			_tcscpy_s(_indexString, length + 1, tmp);
-
-	
 	}
 	return _indexString;
 }
-
-
 
 int EditFile::getView()
 {
@@ -128,7 +115,6 @@ TCHAR *EditFile::getViewString()
 
 	return _viewString;
 }
-
 
 void EditFile::setIndex(int view, int index)
 {
@@ -152,8 +138,6 @@ void EditFile::clearIndexes()
 	_view = -1;
 	_index = -1;
 }
-
-
 
 int EditFile::getBufferID()
 {

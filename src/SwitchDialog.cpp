@@ -16,7 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-#include "stdafx.h"
+
+#include <precompiledHeaders.h>
 
 #include "SwitchDialog.h"
 #include "ConfigDialog.h"
@@ -24,10 +25,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "FileSwitcher.h"
 #include "Compare.h"
 
-#include <windows.h>
-#include <tchar.h>
-#include <commctrl.h>
-#include <map>
 
 WNDPROC g_oldEditProc = 0;
 WNDPROC g_oldListProc = 0;
@@ -52,9 +49,9 @@ LRESULT CALLBACK editProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 				::SendMessage(GetParent(hwnd), WM_KEYDOWN, wParam, 0);
 				return TRUE;
 			}
-		}	
+		}
 		default:
-			if (g_oldEditProc) 
+			if (g_oldEditProc)
 			{
 				return ::CallWindowProc(g_oldEditProc, hwnd, message, wParam, lParam);
 			}
@@ -62,13 +59,8 @@ LRESULT CALLBACK editProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 			{
 				return ::DefWindowProc(hwnd, message, wParam, lParam);
 			}
-
-
-
 	}
-	
 }
-
 
 LRESULT CALLBACK listProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -80,9 +72,7 @@ LRESULT CALLBACK listProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 			// extended = ((lParam & 0x01000000) == 0x01000000);
 			::SendMessage(GetParent(hwnd), WM_KEYDOWN, wParam, 0);
 			return TRUE;
-		
-		
-	
+
 		case WM_KILLFOCUS:
 			// Ignore the kill focus message, so the highlight bar stays blue
 			return TRUE;
@@ -93,7 +83,7 @@ LRESULT CALLBACK listProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 			dlgCode |= DLGC_WANTTAB;
 			return dlgCode;
 		}
-		
+
 		case WM_KEYUP:
 			if (wParam == VK_CONTROL)
 			{
@@ -102,7 +92,7 @@ LRESULT CALLBACK listProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 			}
 			break;
 		default:
-			if (g_oldListProc) 
+			if (g_oldListProc)
 			{
 				return ::CallWindowProc(g_oldListProc, hwnd, message, wParam, lParam);
 			}
@@ -110,27 +100,18 @@ LRESULT CALLBACK listProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam
 			{
 				return ::DefWindowProc(hwnd, message, wParam, lParam);
 			}
-
-
-
 	}
-	
 }
-
 
 TCHAR *fswtcsstr(const TCHAR *str, const TCHAR *substr)
 {
 	return const_cast<TCHAR *>(_tcsstr(str, substr));
-	
 }
 
 TCHAR *fswtcsistr(const TCHAR *str, const TCHAR *substr)
 {
 	return _tcsistr(str, substr);
-	
 }
-
-
 
 void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BOOL previousFile)
 {
@@ -141,10 +122,10 @@ void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BO
 	{
         create(IDD_SWITCHDIALOG);
 
-		// Get the handles of the controls for later 
+		// Get the handles of the controls for later
 		_hEditbox = GetDlgItem(_hSelf, IDC_FILEEDIT);
 		_hListView = GetDlgItem(_hSelf, IDC_LISTVIEW);
-		
+
 		_listView.init(_options, _hInst, _hSelf, _hListView);
 		_columnForView = _options->columnForView;
 
@@ -158,7 +139,7 @@ void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BO
 		::GetClientRect(GetDlgItem(_hSelf, IDCANCEL), &_cancelButtonRect);
 		::GetClientRect(_hEditbox, &_editboxRect);
 		::GetClientRect(_hListView, &_listboxRect);
-		
+
 		WINDOWINFO dialogInfo;
 		RECT dialogRect;
 		::GetWindowInfo(_hSelf, &dialogInfo);
@@ -175,10 +156,9 @@ void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BO
 
 		::GetWindowInfo(GetDlgItem(_hSelf, IDC_OPTIONS), &controlInfo);
 		_optionsButtonRect.top = dialogRect.bottom - (controlInfo.rcClient.top - dialogInfo.rcClient.top);
-		_optionsButtonRect.bottom = controlInfo.rcClient.bottom - controlInfo.rcClient.top; 
+		_optionsButtonRect.bottom = controlInfo.rcClient.bottom - controlInfo.rcClient.top;
 		_optionsButtonRect.left = _okButtonRect.left;
 		_optionsButtonRect.right = controlInfo.rcClient.right - controlInfo.rcClient.left;
-
 
 		::GetWindowInfo(_hEditbox, &controlInfo);
 		_editboxRect.top = controlInfo.rcClient.top - dialogInfo.rcClient.top;
@@ -190,9 +170,8 @@ void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BO
 		_listboxRect.left = controlInfo.rcClient.left - dialogInfo.rcClient.left;
 		_listboxRect.right = dialogRect.right - _listboxRect.right;
 		_listboxRect.bottom = dialogRect.bottom - _listboxRect.bottom;
-		
-		_haveOverriddenSortOrder = FALSE;
 
+		_haveOverriddenSortOrder = FALSE;
 
 		// If the sort order won't be done later anyway, set the default
 		if (!_options->resetSortOrder)
@@ -209,8 +188,6 @@ void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BO
 			goToCenter();
 			updateWindowPosition();
 		}
-
-
 	}
 	else
 	{
@@ -226,21 +203,17 @@ void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BO
 
 	_listView.setCurrentView(currentView);
 	setupColumnWidths(editFiles);
-    
-	
+
 	if (_options->emulateCtrlTab && !ignoreCtrlTab)
 	{
 			_overrideCtrlTab = FALSE;
 			SHORT ctrlState = ::GetKeyState(VK_CONTROL) & 0x80;
 			SHORT shiftState = ::GetKeyState(VK_SHIFT) & 0x80;
-			
-			
-
 
 			searchFiles(_T(""), currentView, currentIndex);
-			
+
 			::SetDlgItemText(_hSelf, IDC_FILEEDIT, _T(""));
-			
+
 			if (_options->overrideSortWhenTabbing)
 			{
 				_haveOverriddenSortOrder = TRUE;
@@ -249,16 +222,15 @@ void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BO
 				_listView.sortItems();
 
 			::SetFocus(_hListView);
-			
+
 			if (shiftState || previousFile)
 				moveSelectionUp(TRUE);
 			else
 				moveSelectionDown(TRUE);
 
 			EnableWindow(_hEditbox, FALSE);
-			
 	}
-	else 
+	else
 	{
 		if (ignoreCtrlTab)
 			_overrideCtrlTab = TRUE;
@@ -270,19 +242,17 @@ void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BO
 		{
 			::SetDlgItemText(_hSelf, IDC_FILEEDIT, (*_typedForFile)[currentBufferID]);
 		}
-		
 
 		TCHAR searchString[SEARCH_STRING_BUFFER_MAX];
-		
 
 		::GetDlgItemText(_hSelf, IDC_FILEEDIT, (LPTSTR)searchString, SEARCH_STRING_BUFFER_MAX);
 		searchFiles(searchString, currentView, currentIndex);
 
 		::SendDlgItemMessage(_hSelf, IDC_FILEEDIT, EM_SETSEL, 0, _tcslen(searchString));
-		
+
 		::SetFocus(_hListView); // draw selected row dark blue (WM_KILLFOCUS will be ignored)
 		::SetFocus(_hEditbox);
-	
+
 		if (_options->resetSortOrder)
 		{
 			if (_options->defaultSortOrder == ALWAYSREMEMBER)
@@ -297,14 +267,9 @@ void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BO
 			else
 				_listView.sortItems(_options->defaultSortOrder);
 		}
-			
-	
 	}
 
-	
-		
 	showAndPositionWindow();
-
 }
 
 int SwitchDialog::getCurrentView(void)
@@ -331,24 +296,20 @@ int SwitchDialog::getCurrentIndex(int currentView)
 	return 0;
 }
 
-	
-
 void SwitchDialog::showAndPositionWindow()
 {
 	::SetWindowPos(_hSelf, HWND_TOP, _dialogX, _dialogY, _dialogWidth, _dialogHeight, SWP_SHOWWINDOW);
 }
 
-
 void SwitchDialog::setupColumnWidths(EditFileContainer &editFiles)
 {
-
 	if (_options->autoSizeColumns)
 	{
 		int filenameColumnMaxWidth = 25;
 		int pathColumnMaxWidth = 25;
 		int tempWidth;
 
-		for(EditFileContainer::iterator iter = editFiles.begin(); 
+		for(EditFileContainer::iterator iter = editFiles.begin();
 				iter != editFiles.end(); iter++)
 		{
 			tempWidth = ListView_GetStringWidth(_hListView, iter->second->getFilename());
@@ -358,9 +319,8 @@ void SwitchDialog::setupColumnWidths(EditFileContainer &editFiles)
 			tempWidth = ListView_GetStringWidth(_hListView, iter->second->getPath());
 			if (tempWidth > pathColumnMaxWidth)
 				pathColumnMaxWidth = tempWidth;
-
 		}
-		
+
 		ListView_SetColumnWidth(_hListView, 0, filenameColumnMaxWidth + COLUMN_PADDING);
 		ListView_SetColumnWidth(_hListView, 1, pathColumnMaxWidth + COLUMN_PADDING);
 		if (_options->autoSizeWindow)
@@ -369,7 +329,6 @@ void SwitchDialog::setupColumnWidths(EditFileContainer &editFiles)
 			_dialogWidth  = filenameColumnMaxWidth + COLUMN_PADDING + pathColumnMaxWidth + COLUMN_PADDING + orderColumnWidth;
 			_dialogWidth  += _okButtonRect.right + _okButtonRect.left + _listboxRect.left;
 		}
-			
 	}
 }
 
@@ -381,28 +340,19 @@ void SwitchDialog::updateWindowPosition(void)
 	_dialogY = wi.rcWindow.top;
 	_dialogWidth = wi.rcWindow.right - wi.rcWindow.left;
 	_dialogHeight = wi.rcWindow.bottom - wi.rcWindow.top;
-
 }
 
-
-
-
-
-
-BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK SwitchDialog::run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	int width, height;
 	int optionsButtonTop;
 
-	switch (Message) 
+	switch (Message)
 	{
         case WM_INITDIALOG :
 		{
 			return TRUE;
 		}
-
-
-			
 
 		case WM_KEYDOWN :
 		{
@@ -423,7 +373,7 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 					moveSelectionPageDown();
 					return TRUE;
 				}
-				
+
 				case VK_PRIOR:
 				{
 					moveSelectionPageUp();
@@ -468,11 +418,11 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 						::EnableWindow(hFileEdit, TRUE);
 						::SetFocus(hFileEdit);
 						BYTE keyState[256];
-						
+
 						::GetKeyboardState((PBYTE)&keyState);
 						keyState[VK_CONTROL] = 0;
 						WORD buffer;
-						
+
 						result = ::ToAscii(wParam, (lParam & 0x00FF0000) >> 16, (const BYTE *)&keyState, &buffer, 0);
 						if (1 == result)
 						{
@@ -484,10 +434,8 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 							::SetFocus(GetDlgItem(_hSelf, IDC_FILEEDIT));
 							_overrideCtrlTab = TRUE;
 
-
 							if (_options->revertSortWhenTabbing)
 							{
-								
 								if (_options->resetSortOrder)
 								{
 									if (_options->defaultSortOrder == ALWAYSREMEMBER)
@@ -497,13 +445,8 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 								}
 								else
 									_listView.sortItems(_options->activeSortOrder);
-		
 							}
 						}
-
-						
-						
-
 
 						/*
 						INPUT input;
@@ -539,15 +482,15 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 			width = LOWORD(lParam);
 			height = HIWORD(lParam);
 			::MoveWindow(GetDlgItem(_hSelf, IDOK), width - _okButtonRect.left, _okButtonRect.top, _okButtonRect.right, _okButtonRect.bottom, TRUE);
-			::MoveWindow(GetDlgItem(_hSelf, IDCANCEL), width - _cancelButtonRect.left, _cancelButtonRect.top, _cancelButtonRect.right, _cancelButtonRect.bottom, TRUE);			
+			::MoveWindow(GetDlgItem(_hSelf, IDCANCEL), width - _cancelButtonRect.left, _cancelButtonRect.top, _cancelButtonRect.right, _cancelButtonRect.bottom, TRUE);
 			optionsButtonTop = height - _optionsButtonRect.top;
-			if (optionsButtonTop < (_cancelButtonRect.top + _cancelButtonRect.bottom + 5)) 
+			if (optionsButtonTop < (_cancelButtonRect.top + _cancelButtonRect.bottom + 5))
 				optionsButtonTop = (_cancelButtonRect.top + _cancelButtonRect.bottom + 5);
 
 			::MoveWindow(GetDlgItem(_hSelf, IDC_OPTIONS), width - _optionsButtonRect.left, optionsButtonTop, _optionsButtonRect.right, _optionsButtonRect.bottom, TRUE);
-			::MoveWindow(_hEditbox, _editboxRect.left, _editboxRect.top, width - _editboxRect.right, _editboxRect.bottom, TRUE);			
-			::MoveWindow(_hListView, _listboxRect.left, _listboxRect.top, width - _listboxRect.right, height - _listboxRect.bottom, TRUE);			
-			
+			::MoveWindow(_hEditbox, _editboxRect.left, _editboxRect.top, width - _editboxRect.right, _editboxRect.bottom, TRUE);
+			::MoveWindow(_hListView, _listboxRect.left, _listboxRect.top, width - _listboxRect.right, height - _listboxRect.bottom, TRUE);
+
 			return TRUE;
 
 #ifndef _DEBUG
@@ -562,7 +505,6 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 						display(FALSE);
 						return TRUE;
 					}
-				
 			}
 			break;
 #endif
@@ -573,9 +515,8 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 				_listView.notify(wParam, lParam);
 			}
 			break;
-		
 
-		case WM_COMMAND : 
+		case WM_COMMAND :
 		{
 			switch(LOWORD(wParam))
 			{
@@ -599,14 +540,11 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 					SetFocus(_hEditbox);
 
 					break;
-				
+
 				default:
 
-			
-					
 					switch (wParam)
 					{
-
 						case IDOK :
 							switchToSelectedBuffer();
 						case IDCANCEL :
@@ -631,20 +569,18 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 			break;
 
 		case FSN_LISTVIEWSETFOCUS:
-			if (!_options->emulateCtrlTab 
+			if (!_options->emulateCtrlTab
 				|| (_options->emulateCtrlTab && _overrideCtrlTab))
 			{
 				SetFocus(_hEditbox);
 			}
 			break;
-
 	}
 	return FALSE;
 }
 
 void SwitchDialog::switchToSelectedBuffer()
 {
-	
 	EditFile* editFile = _listView.getCurrentEditFile();
 
 	if (NULL != editFile)
@@ -667,28 +603,23 @@ void SwitchDialog::setWindowPosition(int x, int y, int width, int height)
 	_dialogY = y;
 	_dialogWidth = width;
 	_dialogHeight = height;
-
 }
-
 
 void SwitchDialog::getWindowPosition(RECT &rc)
 {
 	WINDOWINFO wi;
 	::GetWindowInfo(_hSelf, &wi);
-	
+
 	rc.left = wi.rcWindow.left;
 	rc.right = wi.rcWindow.right;
 	rc.top = wi.rcWindow.top;
 	rc.bottom = wi.rcWindow.bottom;
 }
-    
-
 
 void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int selectedEditFileIndex)
 {
-	
 	int lbIndex = ::SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVIS_SELECTED);
-	
+
 	int currentView = getCurrentView();
 
 	if (selectedEditFileView == -1)
@@ -706,11 +637,8 @@ void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int sele
 	bool selected = false;
 	bool madeSelection = false;
 
-	
-
 	EditFileContainer::iterator iter = _editFiles.begin();
 	bool include;
-
 
 	typedef TCHAR* (*strstrFunction_t)(const TCHAR *str1, const TCHAR *str2);
 
@@ -725,10 +653,6 @@ void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int sele
 		strstrFunc = fswtcsistr;
 	}
 
-
-	
-	
-	
 	while(iter != _editFiles.end())
 	{
 		include = false;
@@ -747,7 +671,6 @@ void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int sele
 
 		if (_options->searchFlags & SEARCHFLAG_STARTONLY)
 		{
-
 			if (_options->searchFlags & SEARCHFLAG_INCLUDEPATH)
 			{
 				TCHAR *searchResult = (*strstrFunc)(iter->second->getPath(), search);
@@ -765,7 +688,6 @@ void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int sele
 				int typedNumber = _ttoi(search);
 				if (typedNumber - 1 == iter->second->getIndex())
 					include = true;
-
 			}
 
 			if (!include && (_options->searchFlags & SEARCHFLAG_INCLUDEVIEW))
@@ -774,7 +696,6 @@ void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int sele
 				if (typedNumber - 1 == iter->second->getView())
 					include = true;
 			}
-
 		}
 		else
 		{
@@ -810,7 +731,6 @@ void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int sele
 			}
 		}
 
-
 		if (include)
 		{
 			if (iter->second->getIndex() == selectedEditFileIndex
@@ -823,9 +743,9 @@ void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int sele
 			{
 				selected = false;
 			}
-			
+
 			addListEntry(iter->second, selected);
-		
+
 			items = true;
 		}
 
@@ -846,21 +766,16 @@ void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int sele
 		item.state = LVIS_SELECTED;
 		SendMessage(_hListView, LVM_SETITEMSTATE, 0, reinterpret_cast<LPARAM>(&item));
 	}
-    
-	
 }
-
 
 void SwitchDialog::moveSelectionUp(BOOL wrap)
 {
-	
 	int currentItem = SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
 	if (currentItem == -1)
 		currentItem = 0;
 
 	if (currentItem > 0)
 	{
-	
 		LVITEM lvi;
 		lvi.stateMask = LVIS_SELECTED;
 		lvi.state     = LVIS_SELECTED;
@@ -870,28 +785,25 @@ void SwitchDialog::moveSelectionUp(BOOL wrap)
 	else if (wrap)
 	{
 		int itemCount = ::SendMessage(_hListView, LVM_GETITEMCOUNT, 0, 0);
-	
+
 		LVITEM lvi;
 		lvi.stateMask = LVIS_SELECTED;
 		lvi.state     = LVIS_SELECTED;
 		::SendMessage(_hListView, LVM_SETITEMSTATE, itemCount - 1, reinterpret_cast<LPARAM>(&lvi));
 		::SendMessage(_hListView, LVM_ENSUREVISIBLE, itemCount - 1, 0);
 	}
-
 }
 
 void SwitchDialog::moveSelectionPageUp()
 {
-	
 	int currentItem = SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
 	if (currentItem == -1)
 		currentItem = 0;
 
-	int pageItems   = ::SendMessage(_hListView, LVM_GETCOUNTPERPAGE, 0, 0); 
+	int pageItems   = ::SendMessage(_hListView, LVM_GETCOUNTPERPAGE, 0, 0);
 
 	if (currentItem >= pageItems)
 	{
-	
 		LVITEM lvi;
 		lvi.stateMask = LVIS_SELECTED;
 		lvi.state     = LVIS_SELECTED;
@@ -900,27 +812,21 @@ void SwitchDialog::moveSelectionPageUp()
 	}
 	else
 	{
-		
 		LVITEM lvi;
 		lvi.stateMask = LVIS_SELECTED;
 		lvi.state     = LVIS_SELECTED;
 		::SendMessage(_hListView, LVM_SETITEMSTATE, 0, reinterpret_cast<LPARAM>(&lvi));
 		::SendMessage(_hListView, LVM_ENSUREVISIBLE, 0, 0);
 	}
-
 }
-
-
 
 void SwitchDialog::moveSelectionDown(BOOL wrap)
 {
-	
 	int currentItem = ::SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
 	int itemCount   = ::SendMessage(_hListView, LVM_GETITEMCOUNT, 0, 0);
 
 	if (currentItem < itemCount - 1)
 	{
-	
 		LVITEM lvi;
 		lvi.stateMask = LVIS_SELECTED;
 		lvi.state     = LVIS_SELECTED;
@@ -929,17 +835,13 @@ void SwitchDialog::moveSelectionDown(BOOL wrap)
 	}
 	else if (wrap)
 	{
-		
 		LVITEM lvi;
 		lvi.stateMask = LVIS_SELECTED;
 		lvi.state     = LVIS_SELECTED;
 		::SendMessage(_hListView, LVM_SETITEMSTATE, 0, reinterpret_cast<LPARAM>(&lvi));
 		::SendMessage(_hListView, LVM_ENSUREVISIBLE, 0, 0);
 	}
-
-
 }
-
 
 void SwitchDialog::moveSelectionPageDown()
 {
@@ -949,16 +851,14 @@ void SwitchDialog::moveSelectionPageDown()
 
 	if (currentItem < itemCount - pageItems)
 	{
-	
 		LVITEM lvi;
 		lvi.stateMask = LVIS_SELECTED;
 		lvi.state     = LVIS_SELECTED;
 		::SendMessage(_hListView, LVM_SETITEMSTATE, currentItem + pageItems, reinterpret_cast<LPARAM>(&lvi));
 		::SendMessage(_hListView, LVM_ENSUREVISIBLE, currentItem + pageItems, 0);
 	}
-	else 
+	else
 	{
-		
 		LVITEM lvi;
 		lvi.stateMask = LVIS_SELECTED;
 		lvi.state     = LVIS_SELECTED;
@@ -970,7 +870,7 @@ void SwitchDialog::moveSelectionPageDown()
 void SwitchDialog::moveSelectionBottom(void)
 {
 	int itemCount = ::SendMessage(_hListView, LVM_GETITEMCOUNT, 0, 0);
-	
+
 	if (itemCount > 0)
 	{
 		LVITEM lvi;
@@ -979,17 +879,12 @@ void SwitchDialog::moveSelectionBottom(void)
 		::SendMessage(_hListView, LVM_SETITEMSTATE, itemCount - 1, reinterpret_cast<LPARAM>(&lvi));
 		::SendMessage(_hListView, LVM_ENSUREVISIBLE, itemCount - 1, 0);
 	}
-
-
 }
-
-
-
 
 void SwitchDialog::moveSelectionTop(void)
 {
 	int itemCount = ::SendMessage(_hListView, LVM_GETITEMCOUNT, 0, 0);
-	
+
 	if (itemCount > 0)
 	{
 		LVITEM lvi;
@@ -999,9 +894,6 @@ void SwitchDialog::moveSelectionTop(void)
 		::SendMessage(_hListView, LVM_ENSUREVISIBLE, 0, 0);
 	}
 }
-
-
-
 
 void SwitchDialog::clearList(void)
 {
@@ -1020,25 +912,21 @@ void SwitchDialog::addListEntry(EditFile *editFile, bool selected)
 	item.iImage = editFile->getFileStatus();
 	item.lParam = (LPARAM)editFile;
 	item.stateMask = LVIS_SELECTED;
-	
+
 	if (selected)
 		item.state = LVIS_SELECTED;
 	else
 		item.state = 0;
-	
-    int index = ListView_InsertItem(hListView, &item);
-	
-	//::SendMessage(_hListView, LVM_SETITEMSTATE, index, reinterpret_cast<LPARAM>(&item));
-	
-	
-}
 
+    int index = ListView_InsertItem(hListView, &item);
+
+	//::SendMessage(_hListView, LVM_SETITEMSTATE, index, reinterpret_cast<LPARAM>(&item));
+}
 
 int SwitchDialog::getCurrentSortOrder()
 {
 	return _listView.getCurrentSortOrder();
 }
-
 
 void SwitchDialog::getColumnOrderString(TCHAR *buffer, int bufferLength)
 {

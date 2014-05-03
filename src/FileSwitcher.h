@@ -1,14 +1,9 @@
-
 #ifndef _FILESWITCHER_H
 #define _FILESWITCHER_H
-
 
 #include "EditFile.h"
 #include <Notepad_plus_msgs.h>
 #include <commctrl.h>
-#include <map>
-#include <tchar.h>
-#include <string>
 
 extern winVer gWinVersion;
 extern HIMAGELIST ghImgList;
@@ -52,20 +47,16 @@ extern HIMAGELIST ghImgList;
 #define FSN_START           (FSM_START + 100)
 #define FSN_LISTVIEWSETFOCUS (FSN_START + 1)
 
-
 #define INDEX(x)           (x & 0x3FFFFFFF)
 #define VIEW(x)			   ((x & 0xC0000000) >> 30)
-
 
 typedef  std::basic_string<TCHAR>	tstring;
 
 typedef std::multimap<int, EditFile*>			EditFileContainer;
 typedef std::multimap<tstring, EditFile*>		FilenameContainer;
 
-
 #define COLUMNORDER_LENGTH     5
 #define COLUMNWIDTH_LENGTH     50
-
 
 struct options_t
 {

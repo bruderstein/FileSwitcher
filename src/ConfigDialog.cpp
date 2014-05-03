@@ -1,8 +1,6 @@
-#include "StdAfx.h"
+#include <precompiledHeaders.h>
 #include "ConfigDialog.h"
-#include "resource.h" 
-
-
+#include "resource.h"
 
 void ConfigDialog::doDialog()
 {
@@ -20,7 +18,6 @@ void ConfigDialog::doModal(HWND parent)
 	_isModal = FALSE;
 }
 
-
 void ConfigDialog::initialiseOptions()
 {
 	if (_options->searchFlags & SEARCHFLAG_CASESENSITIVE)
@@ -33,21 +30,15 @@ void ConfigDialog::initialiseOptions()
 	else
 		::SendDlgItemMessage(_hSelf, IDC_CHECKANYPART, BM_SETCHECK, BST_UNCHECKED, 0);
 
-
-
-
-
 	if (_options->searchFlags & SEARCHFLAG_INCLUDEPATH)
 		::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEPATH, BM_SETCHECK, BST_CHECKED, 0);
 	else
 		::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEPATH, BM_SETCHECK, BST_UNCHECKED, 0);
 
-
 	if (_options->searchFlags & SEARCHFLAG_INCLUDEFILENAME)
 		::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEFILENAME, BM_SETCHECK, BST_CHECKED, 0);
 	else
 		::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEFILENAME, BM_SETCHECK, BST_UNCHECKED, 0);
-
 
 	if (_options->searchFlags & SEARCHFLAG_INCLUDEINDEX)
 		::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEINDEX, BM_SETCHECK, BST_CHECKED, 0);
@@ -63,8 +54,6 @@ void ConfigDialog::initialiseOptions()
 		::SendDlgItemMessage(_hSelf, IDC_CHECKUSEHOMEFOREDIT, BM_SETCHECK, BST_CHECKED, 0);
 	else
 		::SendDlgItemMessage(_hSelf, IDC_CHECKUSEHOMEFOREDIT, BM_SETCHECK, BST_UNCHECKED, 0);
-
-
 
 	switch(LOBYTE(_options->defaultSortOrder))
 	{
@@ -85,8 +74,8 @@ void ConfigDialog::initialiseOptions()
 			::SendDlgItemMessage(_hSelf, IDC_RADIOSORTREMEMBER, BM_SETCHECK, BST_CHECKED, 0);
 			EnableWindow(GetDlgItem(_hSelf, IDC_CHECKRESETSORTORDER), FALSE);
 			EnableWindow(GetDlgItem(_hSelf, IDC_CHECKSORTDESCENDING), FALSE);
-			
-			break;    
+
+			break;
 	}
 
 	if (_options->defaultSortOrder & REVERSE_SORT_ORDER && _options->defaultSortOrder != ALWAYSREMEMBER)
@@ -99,13 +88,10 @@ void ConfigDialog::initialiseOptions()
 	else
 		::SendDlgItemMessage(_hSelf, IDC_CHECKRESETSORTORDER, BM_SETCHECK, BST_UNCHECKED, 0);
 
-
 	if (_options->onlyUseCurrentView)
 		::SendDlgItemMessage(_hSelf, IDC_CHECKONLYCURRENTVIEW, BM_SETCHECK, BST_CHECKED, 0);
 	else
 		::SendDlgItemMessage(_hSelf, IDC_CHECKONLYCURRENTVIEW, BM_SETCHECK, BST_UNCHECKED, 0);
-
-
 
 	if (_options->autoSizeColumns)
 	{
@@ -118,13 +104,11 @@ void ConfigDialog::initialiseOptions()
 		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKAUTOSIZEWINDOW), FALSE);
 	}
 
-
 	if (_options->autoSizeWindow)
 		::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZEWINDOW, BM_SETCHECK, BST_CHECKED, 0);
 	else
 		::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZEWINDOW, BM_SETCHECK, BST_UNCHECKED, 0);
 
-	
 	if (_options->columnForView)
 		::SendDlgItemMessage(_hSelf, IDC_CHECKSEPARATECOLUMNFORVIEW, BM_SETCHECK, BST_CHECKED, 0);
 	else
@@ -144,7 +128,7 @@ void ConfigDialog::initialiseOptions()
 		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING), TRUE);
 		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), TRUE);
 		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKNODIALOGFORCTRLTAB), TRUE);
-*/	
+*/
 
 		if (_options->overrideSortWhenTabbing)
 		{
@@ -161,8 +145,6 @@ void ConfigDialog::initialiseOptions()
 			::SendDlgItemMessage(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING, BM_SETCHECK, BST_CHECKED, 0);
 		else
 			::SendDlgItemMessage(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING, BM_SETCHECK, BST_UNCHECKED, 0);
-
-
 
 		if (_options->noDialogForCtrlTab)
 			::SendDlgItemMessage(_hSelf, IDC_CHECKDIALOGFORCTRLTAB, BM_SETCHECK, BST_UNCHECKED, 0);
@@ -188,17 +170,13 @@ void ConfigDialog::initialiseOptions()
 		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKDIALOGFORCTRLTAB), FALSE);
 		*/
 	}
-
 }
 
-
-
-
-BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam)
+BOOL CALLBACK ConfigDialog::run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam)
 {
 	LRESULT result;
 
-	switch (Message) 
+	switch (Message)
 	{
         case WM_INITDIALOG :
 		{
@@ -206,13 +184,9 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 			goToCenter();
 			return TRUE;
 		}
-		
-	
 
-		case WM_COMMAND : 
+		case WM_COMMAND :
 		{
-			
-				
 				switch (LOWORD(wParam))
 				{
 					case IDC_RADIOSORTREMEMBER:
@@ -259,7 +233,6 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 					case IDOK :
 						_options->searchFlags = 0;
 
-
 						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKSTARTONLY, BM_GETCHECK, 0, 0);
 						if (BST_CHECKED == result)
 							_options->searchFlags |= SEARCHFLAG_STARTONLY;
@@ -272,7 +245,6 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 						if (BST_CHECKED == result)
 							_options->searchFlags |= SEARCHFLAG_INCLUDEPATH;
 
-
 						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEFILENAME, BM_GETCHECK, 0, 0);
 						if (BST_CHECKED == result)
 							_options->searchFlags |= SEARCHFLAG_INCLUDEFILENAME;
@@ -284,7 +256,6 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEVIEW, BM_GETCHECK, 0, 0);
 						if (BST_CHECKED == result)
 							_options->searchFlags |= SEARCHFLAG_INCLUDEVIEW;
-
 
 						result = ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTFILENAME, BM_GETCHECK, 0, 0);
 						if (BST_CHECKED == result)
@@ -301,7 +272,7 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 						result = ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTREMEMBER, BM_GETCHECK, 0, 0);
 						if (BST_CHECKED == result)
 							_options->defaultSortOrder = ALWAYSREMEMBER;
-						else 
+						else
 						{
 							result = ::SendDlgItemMessage(_hSelf, IDC_CHECKSORTDESCENDING, BM_GETCHECK, 0, 0);
 							if (BST_CHECKED == result)
@@ -338,7 +309,6 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 						else
 							_options->autoSizeColumns = FALSE;
 
-
 						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZEWINDOW, BM_GETCHECK, 0, 0);
 						if (BST_CHECKED == result)
 							_options->autoSizeWindow = TRUE;
@@ -363,11 +333,9 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 						else
 							_options->useHomeForEdit = FALSE;
 
-						
-
 					case IDCANCEL :
 						if (_isModal)
-							EndDialog(hWnd, 0);
+							destroy();
 						else
 							display(FALSE);
 						return TRUE;
@@ -375,9 +343,7 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, 
 					default :
 						break;
 				}
-			
 		}
 	}
 	return FALSE;
 }
-

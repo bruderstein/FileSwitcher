@@ -2,6 +2,10 @@
 
 #include "StaticDialog.h"
 
+#ifndef PLUGININTERFACE_H
+#include "PluginInterface.h"
+#endif
+
 class AboutDialog : public StaticDialog
 {
 public:
@@ -15,8 +19,8 @@ public:
 	};
 
     void doDialog();
-    BOOL CALLBACK AboutDialog::run_dlgProc(HWND hWnd, UINT Message, WPARAM wParam, LPARAM lParam);
+    BOOL CALLBACK run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam);
 
-private:	
+private:
 	NppData _nppData;
 };

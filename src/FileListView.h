@@ -1,15 +1,13 @@
 #pragma once
-#include "stdafx.h"
+#include <precompiledHeaders.h>
 #include "EditFile.h"
 #include "FileSwitcher.h"
 #include "Window.h"
 
 #include <windows.h>
-#include <TCHAR.H>
 #include <commctrl.h>
 #include "resource.h"
 #include <shellapi.h>
-
 
 class FileListView
 {
@@ -23,7 +21,7 @@ public:
 
 	int getCurrentSelectedIndex(void);
 	EditFile *getCurrentEditFile(void);
-	
+
 	void sortItems();
 	void sortItems(int currentSortOrder);
 	int getCurrentSortOrder(void);
@@ -39,7 +37,7 @@ public:
 	void updateColumns(void);
 
 private:
-	
+
 	HWND		_hListView;
 	HWND        _hParentWindow;
 	HWND        _hHeader;
@@ -59,4 +57,3 @@ private:
 	void updateHeader(void);
 	void setupListViewHeader(void);
 };
-

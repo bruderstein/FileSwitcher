@@ -1,0 +1,12 @@
+There are three settings you will need to change before building and debugging works as expected.  Please note I have only tested this in VS 2012 Ultimate, but it shouldn't be a stretch to figure it out for other versions.
+
+ - The output directory defines where the project's 'exports library file' (.exp), 'object file library' (.lib), and 'program debug database' (.pdb) files go.  Ideally you would have a test instance of NP++ somewhere, and this output directory would point to the plugins folder of the test np++ instance.
+1) Project Properties -> (left pane) Configuration Properties -> General -> (content pane) Output Directory
+
+ - The Linker Output File defines where the project's 'Application extension' (.dll) and 'Incremental Linker File' (.ilk) files go.  Place this in the same directory as you defined in step 1.
+2) Project Properties -> (left pane) Configuration Properties -> Linker -> (content pane) Output File
+
+ - The Debugging 'Command' is the executable that's run upon debugging.  If you want to debug this code, point this to your test instance of np++
+3) Project Properties -> (left pane) Configuration Properties -> Debugging -> (content pane) Command
+
+You should now be able to build and debug the project. 
