@@ -54,8 +54,8 @@
     <ClCompile Include="..\..\common\StaticDialog.cpp">
       <Filter>Source Files\Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\precompiledHeaders.cpp">
-      <Filter>Source Files\Common</Filter>
+    <ClCompile Include="..\..\src\precompiledHeaders.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -104,8 +104,8 @@
     <ClInclude Include="..\..\common\PluginInterface.h">
       <Filter>Header Files\Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\precompiledHeaders.h">
-      <Filter>Header Files\Common</Filter>
+    <ClInclude Include="..\..\src\precompiledHeaders.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
