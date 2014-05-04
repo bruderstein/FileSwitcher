@@ -335,7 +335,7 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(UINT Message, WPARAM wParam, LPARAM lPar
 
 					case IDCANCEL :
 						if (_isModal)
-							destroy();
+							EndDialog(_hSelf, 0);
 						else
 							display(FALSE);
 						return TRUE;
