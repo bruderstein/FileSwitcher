@@ -1,5 +1,5 @@
 #pragma once
-#include <precompiledHeaders.h>
+#include "precompiledHeaders.h"
 #include "EditFile.h"
 #include "FileSwitcher.h"
 #include "Window.h"

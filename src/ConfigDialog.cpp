@@ -1,4 +1,4 @@
-#include <precompiledHeaders.h>
+#include "precompiledHeaders.h"
 #include "ConfigDialog.h"
 #include "resource.h"
 

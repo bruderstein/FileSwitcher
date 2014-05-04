@@ -1,5 +1,4 @@
-#include <precompiledHeaders.h>
-
+#include "precompiledHeaders.h"
 #include "Compare.h"
 
 LPTSTR _tcsistr(LPCTSTR string, LPCTSTR strCharSet)

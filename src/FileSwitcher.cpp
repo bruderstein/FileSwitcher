@@ -1,7 +1,7 @@
 // BufferSwitcher.cpp : Defines the entry point for the DLL application.
 //
 
-#include <precompiledHeaders.h>
+#include "precompiledHeaders.h"
 #include "FileSwitcher.h"
 #include "PluginInterface.h"
 #include "SwitchDialog.h"
