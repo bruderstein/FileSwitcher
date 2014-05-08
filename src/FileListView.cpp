@@ -1,6 +1,9 @@
 #include "precompiledHeaders.h"
+
 #include "FileListView.h"
 #include "resource.h"
+#include <typeinfo>
+#include <string>
 
 FileListView::FileListView()
 {
@@ -13,11 +16,18 @@ void FileListView::init(options_t *options, HINSTANCE hInst, HWND hParent, HWND 
 	_hInstance = hInst;
 	_hParentWindow = hParent;
 
+	if(_options->hasConfiguredContext
+		&& !_ctrlTabSearch)
+	{
+		ListView_SetImageList(_hListView, NULL, LVSIL_SMALL);
+	}
+	else
+	{
+		ListView_SetImageList(_hListView, ghImgList, LVSIL_SMALL);
+	}
+
 	setupListViewHeader();
 	_hHeader = ListView_GetHeader(_hListView);
-
-	if (LOBYTE(options->defaultSortOrder) == ALWAYSREMEMBER)
-        _currentSortOrder = options->activeSortOrder;
 
 	if (gWinVersion < WV_XP)
 	{
@@ -28,15 +38,37 @@ void FileListView::init(options_t *options, HINSTANCE hInst, HWND hParent, HWND 
 	_currentView = 0;
 
 	setColumnOrder(_options->columnOrder);
+
+	if(g_options.hasConfiguredContext
+		&& !_ctrlTabSearch)
+	{
+		::GetPrivateProfileString(LISTVIEW_SETTINGS, KEY_COLUMNWIDTHSSIMPLE, _T("200,300"), g_options.columnWidths, COLUMNWIDTH_LENGTH, iniFilePath);
+	}
+	else
+	{
+		::GetPrivateProfileString(LISTVIEW_SETTINGS, KEY_COLUMNWIDTHS, _T("160,100,60"), g_options.columnWidths, COLUMNWIDTH_LENGTH, iniFilePath);
+	}
 	setColumnWidths(_options->columnWidths);
 
-	ListView_SetImageList(_hListView, ghImgList, LVSIL_SMALL);
 	updateHeader();
 }
 
 int FileListView::getCurrentSelectedIndex()
 {
 	return SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVIS_SELECTED);
+}
+
+SimpleFileInfo* FileListView::getCurrentSimpleFile(void)
+{
+	LVITEM item;
+	item.mask = LVIF_PARAM;
+	item.iItem = getCurrentSelectedIndex();
+
+	if (item.iItem == -1)
+		return NULL;
+
+	::SendMessage(_hListView, LVM_GETITEM, 0, reinterpret_cast<LPARAM>(&item));
+	return reinterpret_cast<SimpleFileInfo*>(item.lParam);
 }
 
 EditFile* FileListView::getCurrentEditFile(void)
@@ -50,6 +82,37 @@ EditFile* FileListView::getCurrentEditFile(void)
 
 	::SendMessage(_hListView, LVM_GETITEM, 0, reinterpret_cast<LPARAM>(&item));
 	return reinterpret_cast<EditFile*>(item.lParam);
+}
+
+int CALLBACK FileListView::listViewSimpleFileComparer(void* lParam1, void* lParam2, LPARAM lParamSort)
+{
+	SimpleFileInfo *edit1 = static_cast<SimpleFileInfo *>(lParam1);
+	SimpleFileInfo *edit2 = static_cast<SimpleFileInfo *>(lParam2);
+
+	int returnValue;
+
+	switch(LOBYTE(lParamSort))
+	{
+		case PATH:
+		{
+			returnValue = _tcsicmp(edit1->filePath.c_str(), edit2->filePath.c_str());
+			if (returnValue == 0)
+				returnValue = _tcsicmp(edit1->fileName.c_str(), edit2->fileName.c_str());
+
+			break;
+		}
+		case FILENAME:
+		default:
+		{
+			returnValue = _tcsicmp(edit1->fileName.c_str(), edit2->fileName.c_str());
+			if (returnValue == 0)
+				returnValue = _tcsicmp(edit1->filePath.c_str(), edit2->filePath.c_str());
+
+			break;
+		}
+	}
+
+	return g_options.activeReversedSortOrder ? -returnValue : returnValue;
 }
 
 int CALLBACK FileListView::listViewComparer(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
@@ -96,12 +159,19 @@ int CALLBACK FileListView::listViewComparer(LPARAM lParam1, LPARAM lParam2, LPAR
 			break;
 	}
 
-	if (lParamSort & REVERSE_SORT_ORDER)
-	{
-		returnValue = -returnValue;
-	}
+	return g_options.activeReversedSortOrder ? -returnValue : returnValue;
+}
 
-	return returnValue;
+void FileListView::sortSimpleFileItems(int sortOrder)
+{
+	_currentSortOrder = sortOrder;
+	updateHeader();
+	sortSimpleFileItems();
+}
+
+void FileListView::sortSimpleFileItems()
+{
+	ListView_SortItems(_hListView, FileListView::listViewSimpleFileComparer, _currentSortOrder);
 }
 
 void FileListView::sortItems(int sortOrder)
@@ -128,42 +198,76 @@ LRESULT FileListView::notify(WPARAM wParam, LPARAM lParam)
 		case LVN_GETDISPINFO:
 		{
 			NMLVDISPINFO* plvdi = reinterpret_cast<NMLVDISPINFO*>(lParam);
-			EditFile *editFile = reinterpret_cast<EditFile*>(plvdi->item.lParam);
-
-			switch (plvdi->item.iSubItem)
+			if(_options->hasConfiguredContext
+				&& !_ctrlTabSearch)
 			{
-				case 0:
-					plvdi->item.pszText = editFile->getFilename();
-					break;
+				SimpleFileInfo *simpleFile = reinterpret_cast<SimpleFileInfo*>(plvdi->item.lParam);
 
-				case 1:
-					plvdi->item.pszText = editFile->getPath();
-					break;
-
-				case 2:
-					plvdi->item.pszText = editFile->getIndexString(_options->columnForView ? FALSE : TRUE);
-					break;
-
-				case 3:
-					plvdi->item.pszText = editFile->getViewString();
-
-				default:
-					break;
+				switch (plvdi->item.iSubItem)
+				{
+					case 0:
+					{
+						TCHAR result[MAX_PATH];
+						_tcscpy(result, simpleFile->fileName.c_str());
+						plvdi->item.pszText = result;
+						break;
+					}
+					case 1:
+					{
+						TCHAR result[MAX_PATH];
+						_tcscpy(result, simpleFile->filePath.c_str());
+						plvdi->item.pszText = result;
+						break;
+					}
+					default:
+						break;
+				}
+				return 0;
 			}
-			return 0;
+			else
+			{
+				EditFile *editFile = reinterpret_cast<EditFile*>(plvdi->item.lParam);
+
+				switch (plvdi->item.iSubItem)
+				{
+					case 0:
+						plvdi->item.pszText = editFile->getFilename();
+						break;
+
+					case 1:
+						plvdi->item.pszText = editFile->getPath();
+						break;
+
+					case 2:
+						plvdi->item.pszText = editFile->getIndexString(!_options->columnForView);
+						break;
+
+					case 3:
+						plvdi->item.pszText = editFile->getViewString();
+
+					default:
+						break;
+				}
+				return 0;
+			}
 		}
 		case LVN_COLUMNCLICK:
 		{
+			_options->activeReversedSortOrder = !_options->activeReversedSortOrder;
+
 			NMLISTVIEW *pnmv = (NMLISTVIEW*)lParam;
 
-			if (LOBYTE(_currentSortOrder) == pnmv->iSubItem)
-				_currentSortOrder ^= REVERSE_SORT_ORDER;
+			_options->activeSortOrder = _currentSortOrder = pnmv->iSubItem;
+
+			if(_options->hasConfiguredContext
+				&& !_ctrlTabSearch)
+			{
+				sortSimpleFileItems(_currentSortOrder);
+			}
 			else
-				_currentSortOrder = pnmv->iSubItem;
-
-			sortItems(_currentSortOrder);
-
-			_options->activeSortOrder = _currentSortOrder;
+			{
+				sortItems(_currentSortOrder);
+			}
 
 			return 0;
 		}
@@ -178,6 +282,7 @@ LRESULT FileListView::notify(WPARAM wParam, LPARAM lParam)
 			::SendMessage(_hParentWindow, FSN_LISTVIEWSETFOCUS, 0, 0);
 			return 0;
 	}
+	return 0;
 }
 
 void FileListView::updateHeader(void)
@@ -195,19 +300,19 @@ void FileListView::updateHeader(void)
 			hdItem.mask &= ~HDI_BITMAP;
 
 			hdItem.fmt  &= ~(HDF_BITMAP | HDF_BITMAP_ON_RIGHT);
-			if (i == LOBYTE(_currentSortOrder))
+			if (i == _currentSortOrder)
 			{
 				hdItem.mask |= HDI_BITMAP;
 				hdItem.fmt  |= (HDF_BITMAP | HDF_BITMAP_ON_RIGHT);
-				hdItem.hbm   = (_currentSortOrder & REVERSE_SORT_ORDER) ? _bmpSortDown : _bmpSortUp;
+				hdItem.hbm = _options->reversedSortOrder ? _bmpSortDown : _bmpSortUp;
 			}
 		}
 		else
 		{
 			hdItem.fmt &= ~(HDF_SORTUP | HDF_SORTDOWN);
-			if (i == LOBYTE(_currentSortOrder))
+			if (i == _currentSortOrder)
 			{
-				hdItem.fmt |= (_currentSortOrder & REVERSE_SORT_ORDER) ? HDF_SORTDOWN : HDF_SORTUP;
+				hdItem.fmt |= _options->activeReversedSortOrder ? HDF_SORTDOWN : HDF_SORTUP;
 			}
 		}
 		Header_SetItem(_hHeader, i, &hdItem);
@@ -234,21 +339,25 @@ void FileListView::setupListViewHeader(void)
 	col.pszText		= _T("Path");
 	ListView_InsertColumn(_hListView, 1, &col);
 
-	col.iSubItem	= 2;
-	col.cx			= 40;
-	col.pszText		= _T("Index");
-	col.fmt			= LVCFMT_RIGHT;
-	ListView_InsertColumn(_hListView, 2, &col);
-
-	if (_options->columnForView)
+	if(!_options->hasConfiguredContext
+		|| _ctrlTabSearch)
 	{
-		_columnForViewAdded = TRUE;
-		_viewColumn			= 3;
-		col.iSubItem	= _viewColumn;
+		col.iSubItem	= 2;
 		col.cx			= 40;
-		col.pszText		= _T("View");
+		col.pszText		= _T("Index");
 		col.fmt			= LVCFMT_RIGHT;
-		ListView_InsertColumn(_hListView, _viewColumn, &col);
+		ListView_InsertColumn(_hListView, 2, &col);
+
+		if (_options->columnForView)
+		{
+			_columnForViewAdded = TRUE;
+			_viewColumn			= 3;
+			col.iSubItem	= _viewColumn;
+			col.cx			= 40;
+			col.pszText		= _T("View");
+			col.fmt			= LVCFMT_RIGHT;
+			ListView_InsertColumn(_hListView, _viewColumn, &col);
+		}
 	}
 
 	ListView_SetExtendedListViewStyle(_hListView, LVS_EX_FULLROWSELECT | LVS_EX_HEADERDRAGDROP | LVS_EX_DOUBLEBUFFER);
@@ -262,8 +371,9 @@ void FileListView::updateColumns(void)
 		_columnForViewAdded = FALSE;
 	}
 
-	if (_options->columnForView)
-	{
+	if (!_options->hasConfiguredContext
+		&& _options->columnForView
+	){
 		LVCOLUMN col;
 		col.mask		= LVCF_TEXT | LVCF_FMT | LVCF_WIDTH;
 		col.fmt			= LVCFMT_RIGHT;
@@ -278,15 +388,15 @@ void FileListView::updateColumns(void)
 	}
 }
 
+int FileListView::getColumnSize()
+{
+	return Header_GetItemCount(_hListView);
+}
+
 TCHAR *FileListView::getColumnOrderString(TCHAR *buffer, int bufferSize)
 {
 	int columnOrder[4];
-	int columns;
-
-	if (_options->columnForView)
-		columns = 4;
-	else
-		columns = 3;
+	int columns = getColumnSize();
 
 	ListView_GetColumnOrderArray(_hListView, columns, &columnOrder);
 
@@ -307,12 +417,7 @@ TCHAR *FileListView::getColumnOrderString(TCHAR *buffer, int bufferSize)
 TCHAR *FileListView::getColumnWidths(TCHAR *buffer, int bufferSize)
 {
 	int columnWidth;
-	int columns;
-
-	if (_options->columnForView)
-		columns = 4;
-	else
-		columns = 3;
+	int columns = getColumnSize();
 
 	TCHAR currentColumn[10];
 	_tcscpy_s(buffer, bufferSize, _T(""));

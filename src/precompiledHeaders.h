@@ -38,7 +38,7 @@
 
 // Windows Header Files
 #include <shlwapi.h>
-#include <commctrl.h>
+#include <CommCtrl.h>
 #include <windows.h>
 #include <tchar.h>
 

@@ -1,4 +1,5 @@
 #include "precompiledHeaders.h"
+#include <tchar.h>
 #include "EditFile.h"
 
 EditFile::EditFile(void)
@@ -8,7 +9,7 @@ EditFile::EditFile(void)
 	_viewString = NULL;
 }
 
-EditFile::EditFile(int view, int index, CONST TCHAR* filename, int searchFlags, int bufferID, void* scintillaDoc)
+EditFile::EditFile(int view, int index, CONST TCHAR* filename, int searchFlags, int bufferID)
 {
 	// Copy the full filename
 	int filenameLength = _tcslen(filename);
@@ -38,7 +39,6 @@ EditFile::EditFile(int view, int index, CONST TCHAR* filename, int searchFlags, 
 	setIndex(view, index);
 	_bufferID = bufferID;
 	_fileStatus = SAVED;
-	_scintillaDoc = scintillaDoc;
 }
 
 EditFile::~EditFile(void)
@@ -73,13 +73,41 @@ TCHAR *EditFile::getFullFilename()
 
 int EditFile::getIndex()
 {
-		return _index;
+	return _index;
+}
+
+bool EditFile::HasMultipleViews()
+{
+	bool result = true;
+
+	int nbFile[2];
+	nbFile[0] = (int)::SendMessage(nppData._nppHandle, NPPM_GETNBOPENFILES, 0, PRIMARY_VIEW);
+	if(nbFile[0] == 1)
+	{
+		TCHAR **fileNames = (TCHAR **) new TCHAR *[1];
+		fileNames[0] = new TCHAR [MAX_PATH];
+		::SendMessage(nppData._nppHandle, NPPM_GETOPENFILENAMESPRIMARY, reinterpret_cast<WPARAM>(fileNames), (LPARAM)1);
+		tstring fileA = fileNames[0];
+		tstring newFile = _T("new  0");
+
+		if (_tcscmp(fileA.c_str(), newFile.c_str()) == 0)
+		{
+			result = false;
+		}
+
+		delete fileNames[0];
+		delete fileNames;
+	}
+
+	return result;
 }
 
 TCHAR *EditFile::getIndexString(BOOL includeView)
 {
 	if (_indexString == NULL)
 	{
+		includeView = includeView && HasMultipleViews();
+
 		TCHAR tmp[16];
 		_itot_s(_index + 1, tmp, 16, 10);
 		int length = _tcslen(tmp);
@@ -102,7 +130,7 @@ TCHAR *EditFile::getIndexString(BOOL includeView)
 
 int EditFile::getView()
 {
-		return _view;
+	return HasMultipleViews() ? _view : 0;
 }
 
 TCHAR *EditFile::getViewString()
@@ -110,7 +138,7 @@ TCHAR *EditFile::getViewString()
 	if (_viewString == NULL)
 	{
 		_viewString = new TCHAR[2];
-		_itot_s(_view + 1, _viewString, 2, 10);
+		_itot_s(getView() + 1, _viewString, 2, 10);
 	}
 
 	return _viewString;
@@ -152,14 +180,4 @@ FileStatus EditFile::getFileStatus()
 void EditFile::setFileStatus(FileStatus status)
 {
 	_fileStatus = status;
-}
-
-void* EditFile::getScintillaDoc(void)
-{
-	return _scintillaDoc;
-}
-
-void EditFile::setScintillaDoc(void* scintillaDoc)
-{
-	_scintillaDoc = scintillaDoc;
 }

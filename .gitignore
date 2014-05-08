@@ -5,4 +5,5 @@
 /projects/2012/*.dll
 /projects/2012/*.ilk
 /projects/2012/*.opensdf
-*.sdf
+**/*.sdf
+**/*.aps

@@ -1,11 +1,12 @@
 #include "precompiledHeaders.h"
 #include "ConfigDialog.h"
 #include "resource.h"
+#include "Globals.h"
 
 void ConfigDialog::doDialog()
 {
-    if (!isCreated())
-        create(IDD_CONFIGDIALOG);
+	if (!isCreated())
+		create(IDD_CONFIGDIALOG);
 
 	_isModal = FALSE;
 	goToCenter();
@@ -18,8 +19,10 @@ void ConfigDialog::doModal(HWND parent)
 	_isModal = FALSE;
 }
 
-void ConfigDialog::initialiseOptions()
+void ConfigDialog::initializeOptions()
 {
+	tstring error;
+
 	if (_options->searchFlags & SEARCHFLAG_CASESENSITIVE)
 		::SendDlgItemMessage(_hSelf, IDC_CHECKCASE, BM_SETCHECK, BST_CHECKED, 0);
 	else
@@ -55,64 +58,125 @@ void ConfigDialog::initialiseOptions()
 	else
 		::SendDlgItemMessage(_hSelf, IDC_CHECKUSEHOMEFOREDIT, BM_SETCHECK, BST_UNCHECKED, 0);
 
-	switch(LOBYTE(_options->defaultSortOrder))
+	if (_options->searchFlags & SEARCHFLAG_INCLUDEWILDCARD)
+		::SendDlgItemMessage(_hSelf, IDC_CHECKWILDCARD, BM_SETCHECK, BST_CHECKED, 0);
+	else
+		::SendDlgItemMessage(_hSelf, IDC_CHECKWILDCARD, BM_SETCHECK, BST_UNCHECKED, 0);
+
+	switch(_options->disabledSelectedSortOrder)
 	{
-		case FILENAME:
+	case ALWAYSREMEMBER :
+		{
+			::EnableWindow(GetDlgItem(_hSelf, IDC_RADIOSORTREMEMBER), FALSE);
+			::SendDlgItemMessage(_hSelf, IDC_RADIOSORTREMEMBER, BM_SETCHECK, BST_CHECKED, 0);
+			break;
+		}
+	case FILENAME :
+		{
+			::EnableWindow(GetDlgItem(_hSelf, IDC_RADIOSORTFILENAME), FALSE);
 			::SendDlgItemMessage(_hSelf, IDC_RADIOSORTFILENAME, BM_SETCHECK, BST_CHECKED, 0);
 			break;
-
-		case PATH:
+		}
+	case PATH :
+		{
+			::EnableWindow(GetDlgItem(_hSelf, IDC_RADIOSORTPATH), FALSE);
 			::SendDlgItemMessage(_hSelf, IDC_RADIOSORTPATH, BM_SETCHECK, BST_CHECKED, 0);
 			break;
-
-		case INDEX:
+		}
+	case INDEX :
+		{
+			::EnableWindow(GetDlgItem(_hSelf, IDC_RADIOSORTINDEX), FALSE);
 			::SendDlgItemMessage(_hSelf, IDC_RADIOSORTINDEX, BM_SETCHECK, BST_CHECKED, 0);
 			break;
+		}
+	}
 
-		case ALWAYSREMEMBER:
-		default:
+	if(_options->configuredContextPath.length() > 0)
+	{
+		::SetDlgItemText(_hSelf, IDC_SEARCHCONTEXTPATH, _options->configuredContextPath.c_str());
+	}
+
+	contextConfiguredOnInit = _options->hasConfiguredContext;
+	if (_options->hasConfiguredContext)
+	{
+		::SendDlgItemMessage(_hSelf, IDC_CHECKCONFIGURESEARCHCONTEXT, BM_SETCHECK, BST_CHECKED, 0);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_SEARCHCONTEXTPATH), TRUE);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_MAXTRAVERSEFILES), TRUE);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_MAXDISPLAYFILES), TRUE);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_RADIOSORTINDEX), FALSE);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKINCLUDEVIEW), FALSE);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKINCLUDEINDEX), FALSE);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKONLYCURRENTVIEW), FALSE);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKSEPARATECOLUMNFORVIEW), FALSE);
+
+		contextPathOnInit = _options->configuredContextPath;
+		if(_options->configuredContextPath.length() > 0
+			&& !(_options->ConfiguredContextPathIsValid()))
+		{
+			error = _T("Context path is invalid.  Please provide a valid context path.");
+		}
+	}
+	else
+	{
+		::SendDlgItemMessage(_hSelf, IDC_CHECKCONFIGURESEARCHCONTEXT, BM_SETCHECK, BST_UNCHECKED, 0);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_SEARCHCONTEXTPATH), FALSE);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_MAXTRAVERSEFILES), FALSE);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_MAXDISPLAYFILES), FALSE);
+		::EnableWindow(GetDlgItem(_hSelf, IDC_RADIOSORTINDEX), TRUE);
+		if(_options->disabledSelectedSortOrder != NONE)
+		{
+			::SendDlgItemMessage(_hSelf, IDC_RADIOSORTINDEX, BM_SETCHECK, BST_CHECKED, 0);
+			::SendDlgItemMessage(_hSelf, IDC_RADIOSORTFILENAME, BM_SETCHECK, BST_UNCHECKED, 0);
+			::SendDlgItemMessage(_hSelf, IDC_RADIOSORTPATH, BM_SETCHECK, BST_UNCHECKED, 0);
+			::SendDlgItemMessage(_hSelf, IDC_RADIOSORTREMEMBER, BM_SETCHECK, BST_UNCHECKED, 0);
+			_options->disabledSelectedSortOrder = NONE;
+		}
+	}
+
+	TCHAR bufMax[20];
+	_itot_s(_options->maxTraverseFiles, bufMax, 20, 10);
+	::SetDlgItemText(_hSelf, IDC_MAXTRAVERSEFILES, bufMax);
+	_itot_s(_options->maxDisplayFiles, bufMax, 20, 10);
+	::SetDlgItemText(_hSelf, IDC_MAXDISPLAYFILES, bufMax);
+
+	switch(LOBYTE(_options->defaultSortOrder))
+	{
+	case FILENAME:
+		{
+			::SendDlgItemMessage(_hSelf, IDC_RADIOSORTFILENAME, BM_SETCHECK, BST_CHECKED, 0);
+			break;
+		}
+	case PATH:
+		{
+			::SendDlgItemMessage(_hSelf, IDC_RADIOSORTPATH, BM_SETCHECK, BST_CHECKED, 0);
+			break;
+		}
+	case INDEX:
+		{
+			::SendDlgItemMessage(_hSelf, IDC_RADIOSORTINDEX, BM_SETCHECK, BST_CHECKED, 0);
+			break;
+		}
+	case ALWAYSREMEMBER:
+	default:
+		{
 			::SendDlgItemMessage(_hSelf, IDC_RADIOSORTREMEMBER, BM_SETCHECK, BST_CHECKED, 0);
 			EnableWindow(GetDlgItem(_hSelf, IDC_CHECKRESETSORTORDER), FALSE);
 			EnableWindow(GetDlgItem(_hSelf, IDC_CHECKSORTDESCENDING), FALSE);
-
 			break;
+		}
 	}
 
-	if (_options->defaultSortOrder & REVERSE_SORT_ORDER && _options->defaultSortOrder != ALWAYSREMEMBER)
-		::SendDlgItemMessage(_hSelf, IDC_CHECKSORTDESCENDING, BM_SETCHECK, BST_CHECKED, 0);
-	else
-		::SendDlgItemMessage(_hSelf, IDC_CHECKSORTDESCENDING, BM_SETCHECK, BST_UNCHECKED, 0);
+	::SendDlgItemMessage(_hSelf, IDC_CHECKSORTDESCENDING, BM_SETCHECK, _options->reversedSortOrder ? BST_CHECKED : BST_UNCHECKED, 0);
+	::SendDlgItemMessage(_hSelf, IDC_CHECKRESETSORTORDER, BM_SETCHECK, _options->resetSortOrder ? BST_CHECKED : BST_UNCHECKED, 0);
 
-	if (_options->resetSortOrder)
-		::SendDlgItemMessage(_hSelf, IDC_CHECKRESETSORTORDER, BM_SETCHECK, BST_CHECKED, 0);
-	else
-		::SendDlgItemMessage(_hSelf, IDC_CHECKRESETSORTORDER, BM_SETCHECK, BST_UNCHECKED, 0);
+	::SendDlgItemMessage(_hSelf, IDC_CHECKONLYCURRENTVIEW, BM_SETCHECK, _options->onlyUseCurrentView ? BST_CHECKED : BST_UNCHECKED, 0);
 
-	if (_options->onlyUseCurrentView)
-		::SendDlgItemMessage(_hSelf, IDC_CHECKONLYCURRENTVIEW, BM_SETCHECK, BST_CHECKED, 0);
-	else
-		::SendDlgItemMessage(_hSelf, IDC_CHECKONLYCURRENTVIEW, BM_SETCHECK, BST_UNCHECKED, 0);
+	::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZECOLUMNS, BM_SETCHECK, _options->autoSizeColumns ? BST_CHECKED : BST_UNCHECKED, 0);
+	::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKAUTOSIZEWINDOW), _options->autoSizeColumns);
 
-	if (_options->autoSizeColumns)
-	{
-		::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZECOLUMNS, BM_SETCHECK, BST_CHECKED, 0);
-		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKAUTOSIZEWINDOW), TRUE);
-	}
-	else
-	{
-		::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZECOLUMNS, BM_SETCHECK, BST_UNCHECKED, 0);
-		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKAUTOSIZEWINDOW), FALSE);
-	}
+	::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZEWINDOW, BM_SETCHECK, _options->autoSizeWindow ? BST_CHECKED : BST_UNCHECKED, 0);
 
-	if (_options->autoSizeWindow)
-		::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZEWINDOW, BM_SETCHECK, BST_CHECKED, 0);
-	else
-		::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZEWINDOW, BM_SETCHECK, BST_UNCHECKED, 0);
-
-	if (_options->columnForView)
-		::SendDlgItemMessage(_hSelf, IDC_CHECKSEPARATECOLUMNFORVIEW, BM_SETCHECK, BST_CHECKED, 0);
-	else
-		::SendDlgItemMessage(_hSelf, IDC_CHECKSEPARATECOLUMNFORVIEW, BM_SETCHECK, BST_UNCHECKED, 0);
+	::SendDlgItemMessage(_hSelf, IDC_CHECKSEPARATECOLUMNFORVIEW, BM_SETCHECK, _options->columnForView ? BST_CHECKED : BST_UNCHECKED, 0);
 
 	if (_options->emulateCtrlTab)
 	{
@@ -121,14 +185,7 @@ void ConfigDialog::initialiseOptions()
 
 		::ShowWindow(GetDlgItem(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING), SW_SHOW);
 		::ShowWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), SW_SHOW);
-		::ShowWindow(GetDlgItem(_hSelf, IDC_CHECKNODIALOGFORCTRLTAB), SW_SHOW);
-
-/*
-		::EnableWindow(GetDlgItem(_hSelf, IDC_LABELCTRLTAB), FALSE);
-		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING), TRUE);
-		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), TRUE);
-		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKNODIALOGFORCTRLTAB), TRUE);
-*/
+		::ShowWindow(GetDlgItem(_hSelf, IDC_CHECKDIALOGFORCTRLTAB), SW_SHOW);
 
 		if (_options->overrideSortWhenTabbing)
 		{
@@ -146,30 +203,67 @@ void ConfigDialog::initialiseOptions()
 		else
 			::SendDlgItemMessage(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING, BM_SETCHECK, BST_UNCHECKED, 0);
 
-		if (_options->noDialogForCtrlTab)
-			::SendDlgItemMessage(_hSelf, IDC_CHECKDIALOGFORCTRLTAB, BM_SETCHECK, BST_UNCHECKED, 0);
-		else
-			::SendDlgItemMessage(_hSelf, IDC_CHECKDIALOGFORCTRLTAB, BM_SETCHECK, BST_CHECKED, 0);
+		::SendDlgItemMessage(_hSelf, IDC_CHECKDIALOGFORCTRLTAB, BM_SETCHECK, _options->showDialogForCtrlTab ?  BST_CHECKED : BST_UNCHECKED, 0);
 	}
 	else
 	{
 		::SetDlgItemText(_hSelf, IDC_LABELCTRLTAB, _T("Ctrl-Tab functionality is disabled. ")
-			                                       _T("To enable it, set the shortcuts for ")
-												   _T("\"Switch to next document\" and ")
-												   _T("\"Switch to previous document\" ")
-												   _T("to Ctrl-Tab and Ctrl-Shift-Tab respectively. ")
-												   _T("Remove the shortcuts from the Notepad++ defaults."));
+			_T("To enable it, set the shortcuts for ")
+			_T("\"Switch to next document\" and ")
+			_T("\"Switch to previous document\" ")
+			_T("to Ctrl-Tab and Ctrl-Shift-Tab respectively. ")
+			_T("Remove the shortcuts from the Notepad++ defaults."));
 		::ShowWindow(GetDlgItem(_hSelf, IDC_LABELCTRLTAB), SW_SHOW);
 
 		::ShowWindow(GetDlgItem(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING), SW_HIDE);
 		::ShowWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), SW_HIDE);
-		::ShowWindow(GetDlgItem(_hSelf, IDC_CHECKNODIALOGFORCTRLTAB), SW_HIDE);
-		/*
-		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING), FALSE);
-		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), FALSE);
-		::EnableWindow(GetDlgItem(_hSelf, IDC_CHECKDIALOGFORCTRLTAB), FALSE);
-		*/
+		::ShowWindow(GetDlgItem(_hSelf, IDC_CHECKDIALOGFORCTRLTAB), SW_HIDE);
 	}
+
+	if(error.length() > 0)
+	{
+		MessageBox(_hSelf, error.c_str(), _T("Error"), MB_OK);
+	}
+}
+
+void ConfigDialog::initTooltips()
+{
+	TCHAR bufMaxTooltip[MAX_TOOLTIP_LENGTH];
+	_tcscpy_s(bufMaxTooltip
+		, MAX_TOOLTIP_LENGTH
+		, _T("Maximum number of files to traverse.")
+			_T("This is to prevent np++ crashes due to a directory with too ")
+			_T("many files, and configurable due to its performance dependency on hardware.")
+	);
+	CreateToolTip(IDC_TOOLTIPMAXTRAVERSE
+		, _hSelf
+		, bufMaxTooltip
+	);
+
+	_tcscpy_s(bufMaxTooltip
+		, MAX_TOOLTIP_LENGTH
+		, _T("Maximum number of files to display.  A lower number will speed up the searching refresh rate for each keystroke")
+	);
+	CreateToolTip(IDC_TOOLTIPMAXDISPLAY
+		, _hSelf
+		, bufMaxTooltip
+	);
+
+	_tcscpy_s(bufMaxTooltip
+		, MAX_TOOLTIP_LENGTH
+		, _T("Type a working directory that you want to be your new search context.")
+	);
+	CreateToolTip(IDC_TOOLTIPCONFIGURECONTEXT
+		, _hSelf
+		, bufMaxTooltip
+	);
+}
+
+void ConfigDialog::enableOrDisableSortCheckBoxes()
+{
+	bool result = BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTREMEMBER, BM_GETCHECK, 0, 0);
+	EnableWindow(GetDlgItem(_hSelf, IDC_CHECKRESETSORTORDER), !result);
+	EnableWindow(GetDlgItem(_hSelf, IDC_CHECKSORTDESCENDING), !result);
 }
 
 BOOL CALLBACK ConfigDialog::run_dlgProc(UINT Message, WPARAM wParam, LPARAM lParam)
@@ -178,171 +272,275 @@ BOOL CALLBACK ConfigDialog::run_dlgProc(UINT Message, WPARAM wParam, LPARAM lPar
 
 	switch (Message)
 	{
-        case WM_INITDIALOG :
+	case WM_INITDIALOG :
 		{
-			initialiseOptions();
+			initializeOptions();
 			goToCenter();
+
+			Edit_LimitText(GetDlgItem(_hSelf, IDC_MAXDISPLAYFILES), 7);
+			Edit_LimitText(GetDlgItem(_hSelf, IDC_MAXTRAVERSEFILES), 7);
+			Edit_LimitText(GetDlgItem(_hSelf, IDC_SEARCHCONTEXTPATH), MAX_PATH);
+
+			initTooltips();
+
 			return TRUE;
 		}
 
-		case WM_COMMAND :
+	case WM_COMMAND :
 		{
-				switch (LOWORD(wParam))
+			switch (LOWORD(wParam))
+			{
+			case IDC_RADIOSORTREMEMBER:
+			case IDC_RADIOSORTINDEX:
+			case IDC_RADIOSORTPATH:
+			case IDC_RADIOSORTFILENAME:
 				{
-					case IDC_RADIOSORTREMEMBER:
-					case IDC_RADIOSORTINDEX:
-					case IDC_RADIOSORTPATH:
-					case IDC_RADIOSORTFILENAME:
-						result = ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTREMEMBER, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-						{
-							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKRESETSORTORDER), FALSE);
-							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKSORTDESCENDING), FALSE);
-						}
-						else
-						{
-							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKRESETSORTORDER), TRUE);
-							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKSORTDESCENDING), TRUE);
-						}
+					enableOrDisableSortCheckBoxes();
+					break;
+				}
+			case IDC_CHECKSORTDESCENDING :
+			{
+				_options->activeReversedSortOrder = (BST_CHECKED != ::SendDlgItemMessage(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING, BM_GETCHECK, 0, 0));
+				break;
+			}
+			case IDC_CHECKDIALOGFORCTRLTAB :
+				{
+					bool checked = BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_CHECKDIALOGFORCTRLTAB, BM_GETCHECK, 0, 0);
+					EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), checked);
+					break;
+				}
+			case IDC_CHECKCONFIGURESEARCHCONTEXT:
+				{
+					bool isChecked = (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_CHECKCONFIGURESEARCHCONTEXT, BM_GETCHECK, 0, 0));
+					EnableWindow(GetDlgItem(_hSelf, IDC_SEARCHCONTEXTPATH), isChecked);
+					EnableWindow(GetDlgItem(_hSelf, IDC_MAXTRAVERSEFILES), isChecked);
+					EnableWindow(GetDlgItem(_hSelf, IDC_MAXDISPLAYFILES), isChecked);
+					EnableWindow(GetDlgItem(_hSelf, IDC_CHECKINCLUDEINDEX), !isChecked);
+					EnableWindow(GetDlgItem(_hSelf, IDC_CHECKINCLUDEVIEW), !isChecked);
+					EnableWindow(GetDlgItem(_hSelf, IDC_RADIOSORTINDEX), !isChecked);
+					EnableWindow(GetDlgItem(_hSelf, IDC_CHECKONLYCURRENTVIEW), !isChecked);
+					EnableWindow(GetDlgItem(_hSelf, IDC_CHECKSEPARATECOLUMNFORVIEW), !isChecked);
 
-						break;
+					if(BST_CHECKED && ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTINDEX, BM_GETCHECK, 0, 0))
+					{
+						::SendDlgItemMessage(_hSelf, IDC_RADIOSORTFILENAME, BM_SETCHECK, BST_CHECKED, 0);
+					}
+					else if(!BST_CHECKED && ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTINDEX, BM_GETCHECK, 0, 0))
+					{
+						::SendDlgItemMessage(_hSelf, IDC_RADIOSORTREMEMBER, BM_SETCHECK, BST_UNCHECKED, 0);
+						::SendDlgItemMessage(_hSelf, IDC_RADIOSORTFILENAME, BM_SETCHECK, BST_UNCHECKED, 0);
+						::SendDlgItemMessage(_hSelf, IDC_RADIOSORTPATH, BM_SETCHECK, BST_UNCHECKED, 0);
+					}
+					break;
+				}
+			case IDC_CHECKAUTOSIZECOLUMNS:
+				{
+					result = ::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZECOLUMNS, BM_GETCHECK, 0, 0);
+					EnableWindow(GetDlgItem(_hSelf, IDC_CHECKAUTOSIZEWINDOW), BST_CHECKED == result);
+					break;
+				}
+			case IDOK :
+				{
+					tstring error = _T("");
+					_options->searchFlags = 0;
 
-					case IDC_CHECKOVERRIDESORTWHENTABBING:
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-						{
-							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), TRUE);
-						}
-						else
-						{
-							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING), FALSE);
-						}
-						break;
+					result = ::SendDlgItemMessage(_hSelf, IDC_CHECKSTARTONLY, BM_GETCHECK, 0, 0);
+					if (BST_CHECKED == result)
+						_options->searchFlags |= SEARCHFLAG_STARTONLY;
 
-					case IDC_CHECKAUTOSIZECOLUMNS:
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZECOLUMNS, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-						{
-							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKAUTOSIZEWINDOW), TRUE);
-						}
-						else
-						{
-							EnableWindow(GetDlgItem(_hSelf, IDC_CHECKAUTOSIZEWINDOW), FALSE);
-						}
-						break;
-					case IDOK :
-						_options->searchFlags = 0;
+					result = ::SendDlgItemMessage(_hSelf, IDC_CHECKCASE, BM_GETCHECK, 0, 0);
+					if (BST_CHECKED == result)
+						_options->searchFlags |= SEARCHFLAG_CASESENSITIVE;
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKSTARTONLY, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->searchFlags |= SEARCHFLAG_STARTONLY;
+					result = ::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEPATH, BM_GETCHECK, 0, 0);
+					if (BST_CHECKED == result)
+						_options->searchFlags |= SEARCHFLAG_INCLUDEPATH;
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKCASE, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->searchFlags |= SEARCHFLAG_CASESENSITIVE;
+					result = ::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEFILENAME, BM_GETCHECK, 0, 0);
+					if (BST_CHECKED == result)
+						_options->searchFlags |= SEARCHFLAG_INCLUDEFILENAME;
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEPATH, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->searchFlags |= SEARCHFLAG_INCLUDEPATH;
+					result = ::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEINDEX, BM_GETCHECK, 0, 0);
+					if (BST_CHECKED == result)
+						_options->searchFlags |= SEARCHFLAG_INCLUDEINDEX;
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEFILENAME, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->searchFlags |= SEARCHFLAG_INCLUDEFILENAME;
+					result = ::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEVIEW, BM_GETCHECK, 0, 0);
+					if (BST_CHECKED == result)
+						_options->searchFlags |= SEARCHFLAG_INCLUDEVIEW;
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEINDEX, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->searchFlags |= SEARCHFLAG_INCLUDEINDEX;
+					_options->hasConfiguredContext = (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_CHECKCONFIGURESEARCHCONTEXT, BM_GETCHECK, 0, 0));
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKINCLUDEVIEW, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->searchFlags |= SEARCHFLAG_INCLUDEVIEW;
+					if(
+						(
+							!_options->hasConfiguredContext
+							&& !(_options->searchFlags & SEARCHFLAG_INCLUDEPATH)
+							&& !(_options->searchFlags & SEARCHFLAG_INCLUDEFILENAME)
+							&& !(_options->searchFlags & SEARCHFLAG_INCLUDEINDEX)
+							&& !(_options->searchFlags & SEARCHFLAG_INCLUDEVIEW)
+						)
+						|| (
+							_options->hasConfiguredContext
+							&& !(_options->searchFlags & SEARCHFLAG_INCLUDEPATH)
+							&& !(_options->searchFlags & SEARCHFLAG_INCLUDEFILENAME)
+						)
+					){
+						tstring tmpMsg = _T("- Must select at least one item to include in your search");
+						error.length() > 0
+							? error.append(_T("\r\n")).append(tmpMsg)
+							: error.append(tmpMsg);
+					}
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTFILENAME, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->defaultSortOrder = FILENAME;
-
-						result = ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTPATH, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->defaultSortOrder = PATH;
-
-						result = ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTINDEX, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->defaultSortOrder = INDEX;
-
-						result = ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTREMEMBER, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
+					_options->disabledSelectedSortOrder = NONE;
+					if (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTREMEMBER, BM_GETCHECK, 0, 0))
+					{
+						if (IsWindowEnabled(GetDlgItem(_hSelf, IDC_RADIOSORTREMEMBER)))
 							_options->defaultSortOrder = ALWAYSREMEMBER;
 						else
+							_options->disabledSelectedSortOrder = ALWAYSREMEMBER;
+					}
+
+					_options->reversedSortOrder = (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_CHECKSORTDESCENDING, BM_GETCHECK, 0, 0));
+					_options->resetSortOrder = (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_CHECKRESETSORTORDER, BM_GETCHECK, 0, 0));
+
+					if (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTFILENAME, BM_GETCHECK, 0, 0))
+					{
+						if (IsWindowEnabled(GetDlgItem(_hSelf, IDC_RADIOSORTFILENAME)))
 						{
-							result = ::SendDlgItemMessage(_hSelf, IDC_CHECKSORTDESCENDING, BM_GETCHECK, 0, 0);
-							if (BST_CHECKED == result)
-								_options->defaultSortOrder |= REVERSE_SORT_ORDER;
+							_options->activeSortOrder = FILENAME;
+							_options->defaultSortOrder = FILENAME;
 						}
-
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKRESETSORTORDER, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->resetSortOrder = TRUE;
 						else
-							_options->resetSortOrder = FALSE;
+							_options->disabledSelectedSortOrder = FILENAME;
+					}
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->overrideSortWhenTabbing = TRUE;
+					if (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTPATH, BM_GETCHECK, 0, 0))
+					{
+						if (IsWindowEnabled(GetDlgItem(_hSelf, IDC_RADIOSORTPATH)))
+						{
+							_options->activeSortOrder = PATH;
+							_options->defaultSortOrder = PATH;
+						}
 						else
-							_options->overrideSortWhenTabbing = FALSE;
+							_options->disabledSelectedSortOrder = PATH;
+					}
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->revertSortWhenTabbing = TRUE;
+					if (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_RADIOSORTINDEX, BM_GETCHECK, 0, 0))
+					{
+						if (IsWindowEnabled(GetDlgItem(_hSelf, IDC_RADIOSORTINDEX)))
+						{
+							_options->activeSortOrder = INDEX;
+							_options->defaultSortOrder = INDEX;
+						}
 						else
-							_options->revertSortWhenTabbing = FALSE;
+							_options->disabledSelectedSortOrder = INDEX;
+					}
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKONLYCURRENTVIEW, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->onlyUseCurrentView = TRUE;
-						else
-							_options->onlyUseCurrentView = FALSE;
+					_options->overrideSortWhenTabbing = (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_CHECKOVERRIDESORTWHENTABBING, BM_GETCHECK, 0, 0));
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZECOLUMNS, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->autoSizeColumns = TRUE;
-						else
-							_options->autoSizeColumns = FALSE;
+					_options->revertSortWhenTabbing = (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_CHECKREVERTSORTORDERDURINGTABBING, BM_GETCHECK, 0, 0));
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZEWINDOW, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->autoSizeWindow = TRUE;
-						else
-							_options->autoSizeWindow = FALSE;
+					_options->onlyUseCurrentView = (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_CHECKONLYCURRENTVIEW, BM_GETCHECK, 0, 0));
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKSEPARATECOLUMNFORVIEW, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->columnForView = TRUE;
-						else
-							_options->columnForView = FALSE;
+					_options->autoSizeColumns = (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZECOLUMNS, BM_GETCHECK, 0, 0));
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKDIALOGFORCTRLTAB, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->noDialogForCtrlTab = FALSE;
-						else
-							_options->noDialogForCtrlTab = TRUE;
+					_options->autoSizeWindow = (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_CHECKAUTOSIZEWINDOW, BM_GETCHECK, 0, 0));
 
-						result = ::SendDlgItemMessage(_hSelf, IDC_CHECKUSEHOMEFOREDIT, BM_GETCHECK, 0, 0);
-						if (BST_CHECKED == result)
-							_options->useHomeForEdit = TRUE;
-						else
-							_options->useHomeForEdit = FALSE;
+					_options->columnForView = (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_CHECKSEPARATECOLUMNFORVIEW, BM_GETCHECK, 0, 0));
 
-					case IDCANCEL :
-						if (_isModal)
-							EndDialog(_hSelf, 0);
-						else
-							display(FALSE);
+					_options->showDialogForCtrlTab = (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_CHECKDIALOGFORCTRLTAB, BM_GETCHECK, 0, 0));
+
+					_options->useHomeForEdit = (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_CHECKUSEHOMEFOREDIT, BM_GETCHECK, 0, 0));
+
+					if(BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_CHECKWILDCARD, BM_GETCHECK, 0, 0))
+						_options->searchFlags |= SEARCHFLAG_INCLUDEWILDCARD;
+
+					if (BST_CHECKED == ::SendDlgItemMessage(_hSelf, IDC_CHECKCASE, BM_GETCHECK, 0, 0))
+						_options->searchFlags |= SEARCHFLAG_CASESENSITIVE;
+
+					bool isNumber = true;
+					TCHAR bufMaxs[20];
+					GetDlgItemText(_hSelf, IDC_MAXTRAVERSEFILES, bufMaxs, MAX_PATH);
+					tstring tmpMaxs = bufMaxs;
+					if(tmpMaxs.length() > 0 && is_number(tmpMaxs))
+					{
+						_options->maxTraverseFiles = _tstoi(tmpMaxs.c_str());
+					}
+					else
+					{
+						tstring tmpMsg = _T("- Maximum files traversed is not a valid number");
+						error.length() > 0
+							? error.append(_T("\r\n")).append(tmpMsg)
+							: error.append(tmpMsg);
+						isNumber = false;
+					}
+
+					GetDlgItemText(_hSelf, IDC_MAXDISPLAYFILES, bufMaxs, MAX_PATH);
+					tmpMaxs = bufMaxs;
+					if(tmpMaxs.length() > 0 && is_number(tmpMaxs))
+					{
+						_options->maxDisplayFiles = _tstoi(tmpMaxs.c_str());
+					}
+					else
+					{
+						tstring tmpMsg = _T("- Maximum files displayed is not a valid number");
+						error.length() > 0
+							? error.append(_T("\r\n")).append(tmpMsg)
+							: error.append(tmpMsg);
+						isNumber = false;
+					}
+					if(isNumber && _options->maxTraverseFiles < _options->maxDisplayFiles)
+					{
+						tstring tmpMsg = _T("- Max traverse files must be more than max display files.");
+						error.length() > 0
+							? error.append(_T("\r\n")).append(tmpMsg)
+							: error.append(tmpMsg);
+					}
+
+					TCHAR tmpPath[MAX_PATH];
+					result = ::GetDlgItemText(_hSelf, IDC_SEARCHCONTEXTPATH, tmpPath, MAX_PATH);
+					tstring tstrPath = tmpPath;
+					if(_options->hasConfiguredContext
+						&& (tstrPath.length() > 0))
+						_options->configuredContextPath = (tstrPath.back() == _T('\\')) ? tstrPath : tstrPath.append(_T("\\"));
+
+					if(_options->hasConfiguredContext
+						&& !(_options->ConfiguredContextPathIsValid())
+						){
+						tstring tmpMsg = _T("- Context path is invalid.  Please provide a valid context path.");
+						error.length() > 0
+							? error.append(_T("\r\n")).append(tmpMsg)
+							: error.append(tmpMsg);
+					}
+
+					if(error.length() > 0)
+					{
+						MessageBox(_hSelf, error.c_str(), _T("Error"), MB_OK);
 						return TRUE;
+					}
 
-					default :
-						break;
+					g_filesNeedToBeReloaded(
+						(_tcscmp(contextPathOnInit.c_str(), _options->configuredContextPath.c_str()) != 0)
+						|| (!contextConfiguredOnInit && _options->hasConfiguredContext));
+					redisplaySwitchDialog();
 				}
+			case IDCANCEL :
+				{
+					if (_isModal)
+						EndDialog(_hSelf, 0);
+					else
+						display(FALSE);
+
+					redisplaySwitchDialog();
+					return TRUE;
+				}
+			case IDABORT :
+			case IDCLOSE :
+				{
+					redisplaySwitchDialog();
+				}
+			default :
+				break;
+			}
 		}
 	}
 	return FALSE;

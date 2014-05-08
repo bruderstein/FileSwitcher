@@ -3,6 +3,9 @@
 #include "SearchOptions.h"
 #include "StaticDialog.h"
 #include "FileSwitcher.h"
+#include <Windowsx.h>
+#include "resource.h"
+#include "Globals.h"
 
 #ifndef PLUGININTERFACE_H
 #include "PluginInterface.h"
@@ -38,5 +41,10 @@ private:
 
 	struct options_t *_options;
 
-	void ConfigDialog::initialiseOptions();
+	void ConfigDialog::initializeOptions();
+	void ConfigDialog::initTooltips();
+	void ConfigDialog::enableOrDisableSortCheckBoxes();
+
+	tstring contextPathOnInit;
+	bool contextConfiguredOnInit;
 };

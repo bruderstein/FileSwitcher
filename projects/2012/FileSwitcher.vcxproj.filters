@@ -25,6 +25,9 @@
     <Filter Include="Header Files\Common">
       <UniqueIdentifier>{8454de48-8dfd-4404-a686-6e6e3e480160}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\ThirdPartyLibs">
+      <UniqueIdentifier>{b28dca7c-ccd7-4281-9c11-ec83fd7bce90}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\Compare.cpp">
@@ -37,9 +40,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\FileSwitcher.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\AboutDialog.cpp">
@@ -55,6 +55,9 @@
       <Filter>Source Files\Common</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\precompiledHeaders.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Globals.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -75,9 +78,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\SearchOptions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\stdafx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\AboutDialog.h">
@@ -105,7 +105,10 @@
       <Filter>Header Files\Common</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\precompiledHeaders.h">
-      <Filter>Source Files</Filter>
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\thirdPartyLibs\dirent.h">
+      <Filter>Header Files\ThirdPartyLibs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -114,19 +117,22 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\..\src\readonly.ico">
+    <Image Include="..\..\res\SortUp.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\src\saved.ico">
+    <Image Include="..\..\res\SortDown.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\src\SortDown.bmp">
+    <Image Include="..\..\res\unsaved.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\src\SortUp.bmp">
+    <Image Include="..\..\res\readonly.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="..\..\src\unsaved.ico">
+    <Image Include="..\..\res\saved.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="..\..\res\questionMark.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
