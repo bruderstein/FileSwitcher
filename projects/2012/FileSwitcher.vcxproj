@@ -1,0 +1,233 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="ANSI-Debug|Win32">
+      <Configuration>ANSI-Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ANSI-Release|Win32">
+      <Configuration>ANSI-Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{742F7CCE-7020-4946-A59C-DAE3188E4EFC}</ProjectGuid>
+    <RootNamespace>FileSwitcher</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectName>FileSwitcher</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI-Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI-Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ANSI-Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ANSI-Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>11.0.61030.0</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>C:\Personal\ThirdPartySourceRepos\np++\PowerEditor\visual.net\Unicode Debug\plugins</OutDir>
+    <IntDir>Debug\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>C:\Personal\ThirdPartySourceRepos\np++\PowerEditor\visual.net\Unicode Release\plugins</OutDir>
+    <IntDir>Release\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI-Debug|Win32'">
+    <OutDir>C:\Personal\ThirdPartySourceRepos\np++\PowerEditor\visual.net\Unicode Debug\plugins</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI-Release|Win32'">
+    <OutDir>C:\Personal\ThirdPartySourceRepos\np++\PowerEditor\visual.net\Unicode Debug\plugins</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../../Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FileSwitcher_EXPORTS;UNICODE;_UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <PrecompiledHeaderFile>precompiledHeaders.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>shlwapi.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>C:\Personal\ThirdPartySourceRepos\np++\PowerEditor\visual.net\Unicode Debug\plugins\FileSwitcher.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)FileSwitcher.pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <ImportLibrary>$(OutDir)FileSwitcher.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>../../Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FileSwitcher_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <PrecompiledHeaderFile>precompiledHeaders.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>shlwapi.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>C:\Personal\ThirdPartySourceRepos\np++\PowerEditor\visual.net\Unicode Release\plugins\FileSwitcher.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <ImportLibrary>$(OutDir)FileSwitcher.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ANSI-Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>../../Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FileSwitcher_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>shlwapi.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>C:\Personal\ThirdPartySourceRepos\np++\PowerEditor\visual.net\Unicode Debug\plugins\FileSwitcher.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <ProgramDatabaseFile>$(OutDir)FileSwitcher.pdb</ProgramDatabaseFile>
+      <SubSystem>Windows</SubSystem>
+      <ImportLibrary>$(OutDir)FileSwitcher.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ANSI-Release|Win32'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>../../Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FileSwitcher_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>shlwapi.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>C:\Personal\ThirdPartySourceRepos\np++\PowerEditor\visual.net\Unicode Debug\plugins\FileSwitcher.dll</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <ImportLibrary>$(OutDir)FileSwitcher.lib</ImportLibrary>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\common\StaticDialog.cpp">
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../src/precompiledHeaders.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Compare.cpp" />
+    <ClCompile Include="..\..\src\EditFile.cpp" />
+    <ClCompile Include="..\..\src\FileListView.cpp" />
+    <ClCompile Include="..\..\src\FileSwitcher.cpp" />
+    <ClCompile Include="..\..\src\Globals.cpp" />
+    <ClCompile Include="..\..\src\precompiledHeaders.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\src\AboutDialog.cpp" />
+    <ClCompile Include="..\..\src\ConfigDialog.cpp" />
+    <ClCompile Include="..\..\src\SwitchDialog.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\common\Notepad_plus_msgs.h" />
+    <ClInclude Include="..\..\common\PluginInterface.h" />
+    <ClInclude Include="..\..\common\Scintilla.h" />
+    <ClInclude Include="..\..\common\StaticDialog.h" />
+    <ClInclude Include="..\..\common\Window.h" />
+    <ClInclude Include="..\..\src\Compare.h" />
+    <ClInclude Include="..\..\src\EditFile.h" />
+    <ClInclude Include="..\..\src\FileListView.h" />
+    <ClInclude Include="..\..\src\FileSwitcher.h" />
+    <ClInclude Include="..\..\src\precompiledHeaders.h" />
+    <ClInclude Include="..\..\src\resource.h" />
+    <ClInclude Include="..\..\src\SearchOptions.h" />
+    <ClInclude Include="..\..\src\AboutDialog.h" />
+    <ClInclude Include="..\..\src\ConfigDialog.h" />
+    <ClInclude Include="..\..\src\SwitchDialog.h" />
+    <ClInclude Include="..\..\thirdPartyLibs\dirent.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\src\FileSwitcherDialogs.rc">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">../res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='ANSI-Release|Win32'">../../res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='ANSI-Debug|Win32'">../../res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">../../res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\res\questionMark.bmp" />
+    <Image Include="..\..\res\readonly.ico" />
+    <Image Include="..\..\res\saved.ico" />
+    <Image Include="..\..\res\SortDown.bmp" />
+    <Image Include="..\..\res\SortUp.bmp" />
+    <Image Include="..\..\res\unsaved.ico" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

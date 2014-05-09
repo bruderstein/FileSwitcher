@@ -1,0 +1,9 @@
+/projects/2012/ipch
+/projects/2012/Debug
+/projects/2012/*.user
+/projects/2012/*.suo
+/projects/2012/*.dll
+/projects/2012/*.ilk
+/projects/2012/*.opensdf
+**/*.sdf
+**/*.aps

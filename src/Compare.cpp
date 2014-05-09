@@ -1,7 +1,5 @@
-#include "stdafx.h"
-
+#include "precompiledHeaders.h"
 #include "Compare.h"
-#include <tchar.h>
 
 LPTSTR _tcsistr(LPCTSTR string, LPCTSTR strCharSet)
 {

@@ -7,5 +7,3 @@ file rather than just the filename are available in the options` dialog.
 
 
 Source available from http://www.brotherstone.co.uk/npp/Fileswitcher_src.zip
-
-  

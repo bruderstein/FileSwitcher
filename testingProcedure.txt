@@ -1,0 +1,57 @@
+The following is a somewhat comprehensive testing procedure to verify all functionality.  Please add to this document if you add new features.
+
+ - Clear search flags save Filename included + Always remember user selection radio sort
+ + Case sensitive search
+ + Only look at start of filename or path (works in all three scenarios filename/filepath/filename or filepath)
+ + Use only files in the current view
+
+ - Clear Flags
+ + Auto size columns
+ + Auto size window
+ + Use separate column for view
+ + Use home and end keys for textbox
+ + Enable Wildcard Asterisk
+
+ - Clear Flags
+ + Default Sort Order Always remember
+ * Default Sort Order Filename, Path
+ * Default Sort Order Path, Filename
+ * Default Sort Order Index
+
+ * Each of above sort orders with sort descending (also make sure it doesn't work if checked+disabled with always remember)
+ * Each of above sort orders with reset to default selected
+
+ - Back to Always remember
+ + include only filename
+ * include only path
+ * include only file index
+ * include only view
+ + include all
+
+ - Back to Always remember and only including Filename
+ + Map ctrl+tab and ctrl+shift+tab to plugin's mappings of next and previous tab respectively
+ - Clear all ctrl-tab behavior flags
+ ^ make sure ctrl tab works with both one and two views.
+ + override sort order to tab order when ctrl-tabbing
+ + show switcher window when ctrl+tabbing
+ ^ make sure switcher window shows index and active documents whether search context is configured or not
+ + revert sort order if typing begins during ctrl+tabbing (basically, type a letter while holding ctrl, the search window should now be permanent, searching the active documents.  Make sure this doesn't happen if disabled as well).
+
+ - Back to ony including Filename
+ + Configure search context (make sure file index and view aren't included when checked+disabled)
+ ^ Test search context when using only files in the current view is checked+disabled
+ ^ Test search context with "separate column for view" is checked+disabled
+ ^ Test directory with larger than traversed file max
+ ^ Test max displayed files
+ ^ Test bad search directory
+ + Case sensitive search
+ + Only look at start of filename and/or path
+ + Auto size columns
+ + Auto size window
+ 
+ - Clear Search flags (still keep configure search context)
+ + Use Home/End keys for text box
+ + Enable Wildcard Asterisk
+ + Only look at start of filename and/or path
+ + Add Path as well as Filename for search include
+ * Remove Filename (only path is included)
