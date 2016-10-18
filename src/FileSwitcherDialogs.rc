@@ -50,7 +50,7 @@ END
 // Bitmap
 //
 
-IDB_TOOLTIP             BITMAP                  "C:\\Personal\\ThirdPartySourceRepos\\FileSwitcher\\res\\questionMark.bmp"
+IDB_TOOLTIP             BITMAP                  "../res/questionMark.bmp"
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
