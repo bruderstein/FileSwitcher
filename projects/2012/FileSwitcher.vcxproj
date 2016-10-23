@@ -1,20 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="ANSI-Debug|Win32">
-      <Configuration>ANSI-Debug</Configuration>
+    <ProjectConfiguration Include="ANSI Debug|Win32">
+      <Configuration>ANSI Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="ANSI-Release|Win32">
-      <Configuration>ANSI-Release</Configuration>
+    <ProjectConfiguration Include="ANSI Release|Win32">
+      <Configuration>ANSI Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
+    <ProjectConfiguration Include="Unicode Debug|Win32">
+      <Configuration>Unicode Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
+    <ProjectConfiguration Include="Unicode Release|Win32">
+      <Configuration>Unicode Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
@@ -28,10 +28,10 @@
   <PropertyGroup Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <PlatformToolset>v110</PlatformToolset>
-    <CharacterSet Condition="'$(Configuration)'=='ANSI-Debug'">MultiByte</CharacterSet>
-    <CharacterSet Condition="'$(Configuration)'=='ANSI-Release'">MultiByte</CharacterSet>
-    <CharacterSet Condition="'$(Configuration)'=='Debug'">Unicode</CharacterSet>
-    <CharacterSet Condition="'$(Configuration)'=='Release'">Unicode</CharacterSet>
+    <CharacterSet Condition="'$(Configuration)'=='ANSI Debug'">MultiByte</CharacterSet>
+    <CharacterSet Condition="'$(Configuration)'=='ANSI Release'">MultiByte</CharacterSet>
+    <CharacterSet Condition="'$(Configuration)'=='Unicode Debug'">Unicode</CharacterSet>
+    <CharacterSet Condition="'$(Configuration)'=='Unicode Release'">Unicode</CharacterSet>
     <_ProjectFileVersion>11.0.61030.0</_ProjectFileVersion>
     <OutDir>C:\Personal\ThirdPartySourceRepos\np++\PowerEditor\visual.net\$(Configuration)\plugins\</OutDir>
   </PropertyGroup>
@@ -39,10 +39,10 @@
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
-    <Import Project="Debug.props" Condition="'$(Configuration)'=='ANSI-Debug'" />
-    <Import Project="Debug.props" Condition="'$(Configuration)'=='Debug'" />
-    <Import Project="Release.props" Condition="'$(Configuration)'=='ANSI-Release'" />
-    <Import Project="Release.props" Condition="'$(Configuration)'=='Release'" />
+    <Import Project="Debug.props" Condition="'$(Configuration)'=='ANSI Debug'" />
+    <Import Project="Debug.props" Condition="'$(Configuration)'=='Unicode Debug'" />
+    <Import Project="Release.props" Condition="'$(Configuration)'=='ANSI Release'" />
+    <Import Project="Release.props" Condition="'$(Configuration)'=='Unicode Release'" />
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
   </ImportGroup>
