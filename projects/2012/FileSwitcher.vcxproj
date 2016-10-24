@@ -33,6 +33,7 @@
     <CharacterSet Condition="'$(Configuration)'=='Unicode Debug'">Unicode</CharacterSet>
     <CharacterSet Condition="'$(Configuration)'=='Unicode Release'">Unicode</CharacterSet>
     <_ProjectFileVersion>11.0.61030.0</_ProjectFileVersion>
+    <IntDir>obj\$(Platform) $(Configuration)\</IntDir>
     <OutDir>C:\Personal\ThirdPartySourceRepos\np++\PowerEditor\visual.net\$(Configuration)\plugins\</OutDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
