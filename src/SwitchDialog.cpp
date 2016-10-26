@@ -814,7 +814,7 @@ tstring SwitchDialog::initSearchString(tstring str)
 	return result;
 }
 
-std::wregex SwitchDialog::initRegex(tstring str)
+std::tregex SwitchDialog::initRegex(tstring str)
 {
 	//ecmascript is default grammar.  Only declaring this to modify the flag for case sensitivity.
 	std::regex_constants::syntax_option_type sf = std::regex_constants::syntax_option_type::ECMAScript;
@@ -824,7 +824,7 @@ std::wregex SwitchDialog::initRegex(tstring str)
 		sf = sf | std::regex_constants::syntax_option_type::icase;
 	}
 
-	return std::wregex(str.c_str(), sf);
+	return std::tregex(str.c_str(), sf);
 }
 
 void SwitchDialog::searchFiles(TCHAR* search, SimpleFileContainer files)
@@ -848,7 +848,7 @@ void SwitchDialog::searchFiles(TCHAR* search, SimpleFileContainer files)
 	bool include;
 
 	tstring tsearch = initSearchString(search);
-	std::wregex rx = initRegex(tsearch);
+	std::tregex rx = initRegex(tsearch);
 
 	int count = 0;
 	while(itr != files.end() && (count < _options->maxDisplayFiles))
@@ -943,7 +943,7 @@ void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int sele
 	bool include;
 
 	tstring tsearch = initSearchString(search);
-	std::wregex rx = initRegex(tsearch);
+	std::tregex rx = initRegex(tsearch);
 
 	while(iter != _editFiles.end())
 	{

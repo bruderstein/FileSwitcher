@@ -308,11 +308,11 @@ extern "C" __declspec(dllexport) BOOL isUnicode()
 
 void RecursivelyAddFilesFromConfiguredContextPath(tstring root, int maxFiles)
 {
-	WDIR *dir;
-	struct wdirent *ent;
-	if((dir = wopendir(root.c_str())) != NULL)
+	TDIR *dir;
+	struct tdirent *ent;
+	if((dir = topendir(root.c_str())) != NULL)
 	{
-		while(simpleFiles.size() < maxFiles && (ent = wreaddir(dir)) != NULL)
+		while(simpleFiles.size() < maxFiles && (ent = treaddir(dir)) != NULL)
 		{
 			if(ent->d_type == DT_DIR
 				&& (_tcscmp(ent->d_name, _T(".")) != 0)
@@ -328,7 +328,7 @@ void RecursivelyAddFilesFromConfiguredContextPath(tstring root, int maxFiles)
 			}
 		}
 
-		wclosedir(dir);
+		tclosedir(dir);
 	}
 	else
 	{

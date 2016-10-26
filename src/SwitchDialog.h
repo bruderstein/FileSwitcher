@@ -141,7 +141,7 @@ private:
 	void setupColumnWidths(SimpleFileContainer &files);
 	void setupColumnWidths(EditFileContainer &editFiles);
 	tstring initSearchString(tstring str);
-	std::wregex initRegex(tstring str);
+	std::tregex initRegex(tstring str);
 
 	int getCurrentIndex(int currentView);
 	int getCurrentView(void);

@@ -221,7 +221,11 @@ BEGIN
             VALUE "OriginalFilename", "FileSwitcher.dll"
             VALUE "ProductName", "File Switcher plugin"
             VALUE "ProductVersion", "1, 0, 3, 0"
+#ifdef UNICODE
             VALUE "SpecialBuild", "UNICODE"
+#else
+            VALUE "SpecialBuild", "ANSI"
+#endif
         END
     END
     BLOCK "VarFileInfo"
