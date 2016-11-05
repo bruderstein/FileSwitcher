@@ -3,7 +3,7 @@
 
 LPTSTR _tcsistr(LPCTSTR string, LPCTSTR strCharSet)
 {
-	int nLen = _tcslen(strCharSet);
+	auto nLen = _tcslen(strCharSet);
 
 	while (*string)
 	{

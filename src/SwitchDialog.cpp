@@ -169,7 +169,7 @@ void SwitchDialog::doDialog(SimpleFileContainer files)
 
 	EnableWindow(_hEditbox, TRUE);
 
-	int currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
+	auto currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
 	if (_typedForFile->find(currentBufferID) != _typedForFile->end())
 	{
 		::SetDlgItemText(_hSelf, IDC_FILEEDIT, (*_typedForFile)[currentBufferID]);
@@ -303,7 +303,7 @@ void SwitchDialog::doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BO
 
 		EnableWindow(_hEditbox, TRUE);
 
-		int currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
+		auto currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
 		if (_typedForFile->find(currentBufferID) != _typedForFile->end())
 		{
 			::SetDlgItemText(_hSelf, IDC_FILEEDIT, (*_typedForFile)[currentBufferID]);
@@ -343,7 +343,7 @@ int SwitchDialog::getCurrentView(void)
 
 int SwitchDialog::getCurrentIndex(int currentView)
 {
-	int currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
+	auto currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
 	EditFileContainer::iterator lb = _editFiles.lower_bound(currentBufferID);
 	EditFileContainer::iterator ub = _editFiles.upper_bound(currentBufferID);
 
@@ -517,7 +517,7 @@ BOOL CALLBACK SwitchDialog::run_dlgProc(UINT Message, WPARAM wParam, LPARAM lPar
 					keyState[VK_CONTROL] = 0;
 					WORD buffer;
 
-					result = ::ToAscii(wParam, (lParam & 0x00FF0000) >> 16, (const BYTE *)&keyState, &buffer, 0);
+					result = ::ToAscii((UINT)wParam, (lParam & 0x00FF0000) >> 16, (const BYTE *)&keyState, &buffer, 0);
 					if (1 == result)
 					{
 						char temp[2];
@@ -723,7 +723,7 @@ void SwitchDialog::OpenSimpleFile()
 	{
 		if (!_options->emulateCtrlTab || _overrideCtrlTab)
 		{
-			int currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
+			auto currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
 			TCHAR *searchCopy = new TCHAR[SEARCH_STRING_BUFFER_MAX];
 			::GetDlgItemText(_hSelf, IDC_FILEEDIT, (LPTSTR)searchCopy, SEARCH_STRING_BUFFER_MAX);
 			(*_typedForFile)[currentBufferID] = searchCopy;
@@ -743,7 +743,7 @@ void SwitchDialog::switchToSelectedBuffer()
 	{
 		if (!_options->emulateCtrlTab || _overrideCtrlTab)
 		{
-			int currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
+			auto currentBufferID = ::SendMessage(_nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
 			TCHAR *searchCopy = new TCHAR[SEARCH_STRING_BUFFER_MAX];
 			::GetDlgItemText(_hSelf, IDC_FILEEDIT, (LPTSTR)searchCopy, SEARCH_STRING_BUFFER_MAX);
 			(*_typedForFile)[currentBufferID] = searchCopy;
@@ -835,7 +835,6 @@ void SwitchDialog::searchFiles(TCHAR* search, SimpleFileContainer files)
 	{
 		loadFiles(g_options.configuredContextPath, g_options.maxTraverseFiles);
 	}
-	int lbIndex = ::SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVIS_SELECTED);
 
 	int currentView = getCurrentView();
 
@@ -906,7 +905,7 @@ void SwitchDialog::searchFiles(TCHAR* search, SimpleFileContainer files)
 
 	if (madeSelection)
 	{
-		int currentItem = SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
+		auto currentItem = SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
 		::SendMessage(_hListView, LVM_ENSUREVISIBLE, currentItem, 0);
 	}
 	else if (items && !madeSelection)
@@ -920,8 +919,6 @@ void SwitchDialog::searchFiles(TCHAR* search, SimpleFileContainer files)
 
 void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int selectedEditFileIndex)
 {
-	int lbIndex = ::SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVIS_SELECTED);
-
 	int currentView = getCurrentView();
 
 	if (selectedEditFileView == -1)
@@ -1046,7 +1043,7 @@ void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int sele
 
 	if (madeSelection)
 	{
-		int currentItem = SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
+		auto currentItem = SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
 		::SendMessage(_hListView, LVM_ENSUREVISIBLE, currentItem, 0);
 	}
 	else if (items && !madeSelection)
@@ -1060,7 +1057,7 @@ void SwitchDialog::searchFiles(TCHAR* search, int selectedEditFileView, int sele
 
 void SwitchDialog::moveSelectionUp(BOOL wrap)
 {
-	int currentItem = SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
+	auto currentItem = SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
 	if (currentItem == -1)
 		currentItem = 0;
 
@@ -1074,7 +1071,7 @@ void SwitchDialog::moveSelectionUp(BOOL wrap)
 	}
 	else if (wrap)
 	{
-		int itemCount = ::SendMessage(_hListView, LVM_GETITEMCOUNT, 0, 0);
+		auto itemCount = ::SendMessage(_hListView, LVM_GETITEMCOUNT, 0, 0);
 
 		LVITEM lvi;
 		lvi.stateMask = LVIS_SELECTED;
@@ -1086,11 +1083,11 @@ void SwitchDialog::moveSelectionUp(BOOL wrap)
 
 void SwitchDialog::moveSelectionPageUp()
 {
-	int currentItem = SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
+	auto currentItem = SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
 	if (currentItem == -1)
 		currentItem = 0;
 
-	int pageItems   = ::SendMessage(_hListView, LVM_GETCOUNTPERPAGE, 0, 0);
+	auto pageItems   = ::SendMessage(_hListView, LVM_GETCOUNTPERPAGE, 0, 0);
 
 	if (currentItem >= pageItems)
 	{
@@ -1112,8 +1109,8 @@ void SwitchDialog::moveSelectionPageUp()
 
 void SwitchDialog::moveSelectionDown(BOOL wrap)
 {
-	int currentItem = ::SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
-	int itemCount   = ::SendMessage(_hListView, LVM_GETITEMCOUNT, 0, 0);
+	auto currentItem = ::SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
+	auto itemCount   = ::SendMessage(_hListView, LVM_GETITEMCOUNT, 0, 0);
 
 	if (currentItem < itemCount - 1)
 	{
@@ -1135,9 +1132,9 @@ void SwitchDialog::moveSelectionDown(BOOL wrap)
 
 void SwitchDialog::moveSelectionPageDown()
 {
-	int currentItem = ::SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
-	int itemCount   = ::SendMessage(_hListView, LVM_GETITEMCOUNT, 0, 0);
-	int pageItems   = ::SendMessage(_hListView, LVM_GETCOUNTPERPAGE, 0, 0);
+	auto currentItem = ::SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVNI_SELECTED);
+	auto itemCount   = ::SendMessage(_hListView, LVM_GETITEMCOUNT, 0, 0);
+	auto pageItems   = ::SendMessage(_hListView, LVM_GETCOUNTPERPAGE, 0, 0);
 
 	if (currentItem < itemCount - pageItems)
 	{
@@ -1159,7 +1156,7 @@ void SwitchDialog::moveSelectionPageDown()
 
 void SwitchDialog::moveSelectionBottom(void)
 {
-	int itemCount = ::SendMessage(_hListView, LVM_GETITEMCOUNT, 0, 0);
+	auto itemCount = ::SendMessage(_hListView, LVM_GETITEMCOUNT, 0, 0);
 
 	if (itemCount > 0)
 	{
@@ -1173,7 +1170,7 @@ void SwitchDialog::moveSelectionBottom(void)
 
 void SwitchDialog::moveSelectionTop(void)
 {
-	int itemCount = ::SendMessage(_hListView, LVM_GETITEMCOUNT, 0, 0);
+	auto itemCount = ::SendMessage(_hListView, LVM_GETITEMCOUNT, 0, 0);
 
 	if (itemCount > 0)
 	{

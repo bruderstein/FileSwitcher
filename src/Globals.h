@@ -112,7 +112,7 @@ struct options_t
 	TCHAR columnWidths[COLUMNWIDTH_LENGTH];
 	BOOL showDialogForCtrlTab;
 	BOOL useHomeForEdit;
-	BOOL hasConfiguredContext;
+	bool hasConfiguredContext;
 	tstring configuredContextPath;
 	int maxTraverseFiles;
 	int maxDisplayFiles;
@@ -127,7 +127,7 @@ struct options_t
 
 class EditFile;
 
-typedef std::multimap<int, EditFile*>			EditFileContainer;
+typedef std::multimap<uptr_t, EditFile*>		EditFileContainer;
 typedef std::multimap<tstring, EditFile*>		FilenameContainer;
 typedef std::multimap<tstring, SimpleFileInfo*> SimpleFileContainer;
 

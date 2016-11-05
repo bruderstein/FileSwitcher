@@ -32,7 +32,7 @@ public:
 	static int CALLBACK listViewComparer(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 
 	TCHAR *getColumnOrderString(TCHAR *buffer, int bufferSize);
-	TCHAR *getColumnWidths(TCHAR *buffer, int bufferSize);
+	TCHAR *getColumnWidths(TCHAR *buffer, size_t bufferSize);
     void  setColumnWidths(TCHAR *widths);
 	void  setColumnOrder(TCHAR *columnOrder);
 

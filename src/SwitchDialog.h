@@ -39,7 +39,7 @@ public:
 
 	SwitchDialog() : StaticDialog() {};
 
-	void init(HINSTANCE hInst, NppData nppData, struct options_t *options, std::map<int, TCHAR *> *typedForFile, ConfigDialog *configDlg)
+	void init(HINSTANCE hInst, NppData nppData, struct options_t *options, std::map<LRESULT, TCHAR *> *typedForFile, ConfigDialog *configDlg)
 	{
 		_nppData = nppData;
 		_configDlg = configDlg;
@@ -85,7 +85,7 @@ private:
 
 	/* File/buffer info */
 	EditFileContainer _editFiles;
-	int _nbFiles;
+	size_t _nbFiles;
 
 	/* Rectangles for current size / position */
 	RECT _okButtonRect;
@@ -111,7 +111,7 @@ private:
 	BOOL _haveOverriddenSortOrder;
 
 	/* Record of what was typed in for each file and prefill search field when switch dialog prompts */
-	std::map<int, TCHAR *> *_typedForFile;
+	std::map<LRESULT, TCHAR *> *_typedForFile;
 
 	/* Link between BufferID and file index */
 	std::map<int, int> _bufferToIndex;

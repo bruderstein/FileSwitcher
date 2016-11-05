@@ -9,15 +9,15 @@ EditFile::EditFile(void)
 	_viewString = NULL;
 }
 
-EditFile::EditFile(int view, int index, CONST TCHAR* filename, int searchFlags, int bufferID)
+EditFile::EditFile(int view, int index, CONST TCHAR* filename, int searchFlags, uptr_t bufferID)
 {
 	// Copy the full filename
-	int filenameLength = _tcslen(filename);
+	auto filenameLength = _tcslen(filename);
 	_fullFilename = new TCHAR[filenameLength + 1];
 	_tcscpy_s(_fullFilename, filenameLength + 1, filename);
 
-	int position, filenameOffset = 1;
-	for (position = filenameLength; position >= 0 && _fullFilename[position] != '\\'; position--)
+	int position = (int)filenameLength, filenameOffset = 1;
+	for (; position >= 0 && _fullFilename[position] != '\\'; position--)
 		;
 	if (position < 0)
 	{
@@ -26,7 +26,7 @@ EditFile::EditFile(int view, int index, CONST TCHAR* filename, int searchFlags, 
 	}
 
 	_path = new TCHAR[position + 1];
-	int filenameOnlyLength = (filenameLength - position) + 1;
+	auto filenameOnlyLength = (filenameLength - position) + 1;
 	_filename = new TCHAR[filenameOnlyLength];
 	_display = new TCHAR[filenameLength + 5];
 	_tcsncpy_s(_path, position + 1, _fullFilename, position);
@@ -110,7 +110,7 @@ TCHAR *EditFile::getIndexString(BOOL includeView)
 
 		TCHAR tmp[16];
 		_itot_s(_index + 1, tmp, 16, 10);
-		int length = _tcslen(tmp);
+		auto length = _tcslen(tmp);
 
 		if (_view == 1 && includeView)
 			length += 4;
@@ -167,7 +167,7 @@ void EditFile::clearIndexes()
 	_index = -1;
 }
 
-int EditFile::getBufferID()
+uptr_t EditFile::getBufferID()
 {
 	return _bufferID;
 }

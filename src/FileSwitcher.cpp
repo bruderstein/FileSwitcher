@@ -35,14 +35,14 @@ TCHAR iniFilePath[MAX_PATH];
 BOOL				_nppReady;
 int					_previousBufferID;
 int					_previousView;
-int					_currentBufferID;
+uptr_t				_currentBufferID;
 int					_currentView;
 
 /* Maps for lookups */
 EditFileContainer		editFiles;
 FilenameContainer		filenameMap;
 SimpleFileContainer		simpleFiles;
-map<int, TCHAR *>		typedForFile;
+map<LRESULT, TCHAR *>	typedForFile;
 
 /* Dialogs */
 SwitchDialog	switchDlg;
@@ -58,11 +58,11 @@ void doAbout();
 void doConfig();
 void loadSettings();
 void saveSettings();
-EditFile* addEditFile(int bufferID);
-EditFile* addEditFile(TCHAR *filename, int view, int index, int bufferID);
-void removeEditFile(int bufferID);
+EditFile* addEditFile(uptr_t bufferID);
+EditFile* addEditFile(TCHAR *filename, int view, int index, uptr_t bufferID);
+void removeEditFile(uptr_t bufferID);
 void updateCurrentStatus(FileStatus status);
-void updateBufferStatus(int bufferID, FileStatus status);
+void updateBufferStatus(LRESULT bufferID, FileStatus status);
 void updateCurrentBuffer();
 void clearEditFiles();
 
@@ -306,7 +306,7 @@ extern "C" __declspec(dllexport) BOOL isUnicode()
 }
 #endif
 
-void RecursivelyAddFilesFromConfiguredContextPath(tstring root, int maxFiles)
+void RecursivelyAddFilesFromConfiguredContextPath(tstring root, size_t maxFiles)
 {
 	TDIR *dir;
 	struct tdirent *ent;
@@ -418,7 +418,7 @@ void showSwitchDialog(BOOL ignoreCtrlTab, BOOL previousFile)
 				if (::SendMessage(nppData._nppHandle, view ? NPPM_GETOPENFILENAMESSECOND : NPPM_GETOPENFILENAMESPRIMARY,
 					reinterpret_cast<WPARAM>(fileNames), static_cast<LPARAM>(nbFile[view])))
 				{
-					int bufferID;
+					LRESULT bufferID;
 					tstring filenameString;
 					for(int position = 0; position < nbFile[view]; position++)
 					{
@@ -470,7 +470,7 @@ void showSwitchDialogNext()
 		int currentView;
 		::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&currentView));
 		int nbFile = (int)::SendMessage(nppData._nppHandle, NPPM_GETNBOPENFILES, 0, currentView + 1);
-		int position = ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDOCINDEX, 0, currentView);
+		auto position = ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDOCINDEX, 0, currentView);
 		if (position < nbFile - 1)
 			++position;
 		else
@@ -490,7 +490,7 @@ void showSwitchDialogPrevious()
 		int currentView;
 		::SendMessage(nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, reinterpret_cast<LPARAM>(&currentView));
 
-		int position = ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDOCINDEX, 0, currentView);
+		auto position = ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTDOCINDEX, 0, currentView);
 		if (position > 0)
 		{
 			--position;
@@ -505,7 +505,7 @@ void showSwitchDialogPrevious()
 	}
 }
 
-EditFile* addEditFile(TCHAR *filename, int view, int index, int bufferID)
+EditFile* addEditFile(TCHAR *filename, int view, int index, uptr_t bufferID)
 {
 	EditFile *editFile = new EditFile(view, index, filename, 0, bufferID);
 
@@ -526,13 +526,13 @@ EditFile* addEditFile(TCHAR *filename, int view, int index, int bufferID)
 	return editFile;
 }
 
-EditFile* addEditFile(int bufferID)
+EditFile* addEditFile(uptr_t bufferID)
 {
 	TCHAR filePath[MAX_PATH];
 	::SendMessage(nppData._nppHandle, NPPM_GETFULLPATHFROMBUFFERID, bufferID, reinterpret_cast<LPARAM>(filePath));
-	int index = ::SendMessage(nppData._nppHandle, NPPM_GETPOSFROMBUFFERID, bufferID, reinterpret_cast<LPARAM>(filePath));
+	auto index = ::SendMessage(nppData._nppHandle, NPPM_GETPOSFROMBUFFERID, bufferID, reinterpret_cast<LPARAM>(filePath));
 
-	BOOL readonly = ::SendMessage(getCurrentHScintilla(VIEW(index)), SCI_GETREADONLY, 0, 0);
+	auto readonly = ::SendMessage(getCurrentHScintilla(VIEW(index)), SCI_GETREADONLY, 0, 0);
 
 	EditFile* editFile = addEditFile(filePath, VIEW(index), INDEX(index), bufferID);
 
@@ -542,7 +542,7 @@ EditFile* addEditFile(int bufferID)
 	return editFile;
 }
 
-void removeEditFile(int bufferID)
+void removeEditFile(uptr_t bufferID)
 {
 	tstring filename;
 	// Free the EditFile
@@ -562,7 +562,7 @@ void removeEditFile(int bufferID)
 	}
 }
 
-void updateBufferStatus(int bufferID, FileStatus status)
+void updateBufferStatus(LRESULT bufferID, FileStatus status)
 {
 	EditFileContainer::iterator iter = editFiles.lower_bound(bufferID);
 	EditFileContainer::iterator ub = editFiles.upper_bound(bufferID);
@@ -576,7 +576,7 @@ void updateBufferStatus(int bufferID, FileStatus status)
 
 void updateCurrentStatus(FileStatus status)
 {
-	int bufferID = ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
+	auto bufferID = ::SendMessage(nppData._nppHandle, NPPM_GETCURRENTBUFFERID, 0, 0);
 	if (editFiles.find(bufferID) == editFiles.end())
 	{
 		addEditFile(bufferID);
@@ -587,13 +587,13 @@ void updateCurrentStatus(FileStatus status)
 
 void updateCurrentBuffer()
 {
-	BOOL readonly = ::SendMessage(getCurrentHScintilla(_currentView), SCI_GETREADONLY, 0, 0);
+	auto readonly = ::SendMessage(getCurrentHScintilla(_currentView), SCI_GETREADONLY, 0, 0);
 
 	if (readonly)
 		updateCurrentStatus(READONLY);
 	else
 	{
-		int modified = ::SendMessage(getCurrentHScintilla(_currentView), SCI_GETMODIFY, 0, 0);
+		auto modified = ::SendMessage(getCurrentHScintilla(_currentView), SCI_GETMODIFY, 0, 0);
 		if (modified)
 			updateCurrentStatus(UNSAVED);
 		else
@@ -681,7 +681,7 @@ void loadSettings(void)
 	g_options.columnForView = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_COLUMNFORVIEW, 0, iniFilePath);
 	g_options.showDialogForCtrlTab = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_SHOWDIALOGFORCTRLTAB, 1, iniFilePath);
 	g_options.useHomeForEdit = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_USEHOMEFOREDIT, 0, iniFilePath);
-	g_options.hasConfiguredContext = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_CONFIGURESEARCHCONTEXT, 0, iniFilePath);
+	g_options.hasConfiguredContext = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_CONFIGURESEARCHCONTEXT, 0, iniFilePath) != false;
 	int tmp = ::GetPrivateProfileInt(GENERAL_SETTINGS, KEY_DISABLEDSELECTEDSORTORDER, -2, iniFilePath);
 	g_options.disabledSelectedSortOrder = static_cast<SortOrder>(tmp);
 

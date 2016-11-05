@@ -17,7 +17,7 @@ class EditFile
 {
 public:
     EditFile(void);
-	EditFile(int view, int index, CONST TCHAR *filename, int searchFlags, int bufferID);
+	EditFile(int view, int index, CONST TCHAR *filename, int searchFlags, uptr_t bufferID);
 	~EditFile(void);
 
 	TCHAR* getFilename();
@@ -27,7 +27,7 @@ public:
 	TCHAR* getViewString();
 	int    getIndex();
 	int    getView();
-	int    getBufferID();
+	uptr_t getBufferID();
 	FileStatus getFileStatus();
 
 	void   setIndex(int view, int index);
@@ -43,7 +43,7 @@ private:
 	FileStatus _fileStatus;
 
 	bool _dataSet;
-	int _bufferID;
+	uptr_t _bufferID;
 	int _view;
 	int _index;
 

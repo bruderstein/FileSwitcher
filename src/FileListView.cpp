@@ -55,7 +55,8 @@ void FileListView::init(options_t *options, HINSTANCE hInst, HWND hParent, HWND 
 
 int FileListView::getCurrentSelectedIndex()
 {
-	return SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVIS_SELECTED);
+	// This is always used as the value for LVITEM::iItem, which is int.
+	return (int)SendMessage(_hListView, LVM_GETNEXTITEM, -1, LVIS_SELECTED);
 }
 
 SimpleFileInfo* FileListView::getCurrentSimpleFile(void)
@@ -414,7 +415,7 @@ TCHAR *FileListView::getColumnOrderString(TCHAR *buffer, int bufferSize)
 	return buffer;
 }
 
-TCHAR *FileListView::getColumnWidths(TCHAR *buffer, int bufferSize)
+TCHAR *FileListView::getColumnWidths(TCHAR *buffer, size_t bufferSize)
 {
 	int columnWidth;
 	int columns = getColumnSize();
@@ -422,7 +423,7 @@ TCHAR *FileListView::getColumnWidths(TCHAR *buffer, int bufferSize)
 	TCHAR currentColumn[10];
 	_tcscpy_s(buffer, bufferSize, _T(""));
 
-	int currentLength = 0;
+	size_t currentLength = 0;
 
 	for(int columnIndex = 0; columnIndex < columns; columnIndex++)
 	{
@@ -474,11 +475,11 @@ void FileListView::setColumnOrder(TCHAR *columnOrder)
 {
 	int columnOrderInt[4];
 
-	int columnsSupplied = _tcslen(columnOrder);
+	size_t columnsSupplied = _tcslen(columnOrder);
 	TCHAR columnIndex[2];
 	columnIndex[1] = '\0';
 
-	for(int index = 0; index < columnsSupplied; index++)
+	for(size_t index = 0; index < columnsSupplied; index++)
 	{
 		columnIndex[0] = columnOrder[index];
 		columnOrderInt[index] = _ttoi(columnIndex);
