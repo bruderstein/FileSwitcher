@@ -209,14 +209,14 @@ LRESULT FileListView::notify(WPARAM wParam, LPARAM lParam)
 					case 0:
 					{
 						TCHAR result[MAX_PATH];
-						_tcscpy(result, simpleFile->fileName.c_str());
+						_tcscpy_s(result, sizeof(result), simpleFile->fileName.c_str());
 						plvdi->item.pszText = result;
 						break;
 					}
 					case 1:
 					{
 						TCHAR result[MAX_PATH];
-						_tcscpy(result, simpleFile->filePath.c_str());
+						_tcscpy_s(result, sizeof(result), simpleFile->filePath.c_str());
 						plvdi->item.pszText = result;
 						break;
 					}
@@ -457,8 +457,9 @@ TCHAR *FileListView::getColumnWidths(TCHAR *buffer, size_t bufferSize)
 void FileListView::setColumnWidths(TCHAR *columnWidths)
 {
 	TCHAR *width;
+	TCHAR *context;
 	int index = 0;
-	width = _tcstok(columnWidths, _T(","));
+	width = _tcstok_s(columnWidths, _T(","), &context);
 	int iWidth;
 
 	while(NULL != width)
@@ -466,7 +467,7 @@ void FileListView::setColumnWidths(TCHAR *columnWidths)
 		iWidth = _ttoi(width);
 		ListView_SetColumnWidth(_hListView, index, iWidth);
 
-		width = _tcstok(NULL, _T(","));
+		width = _tcstok_s(NULL, _T(","), &context);
 		++index;
 	}
 }
