@@ -39,6 +39,7 @@
     <RootNamespace>FileSwitcher</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <ProjectName>FileSwitcher</ProjectName>
+    <NPPSourceRoot>C:\Personal\ThirdPartySourceRepos\np++\</NPPSourceRoot>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -50,8 +51,26 @@
     <CharacterSet Condition="'$(Configuration)'=='Unicode Release'">Unicode</CharacterSet>
     <_ProjectFileVersion>11.0.61030.0</_ProjectFileVersion>
     <IntDir>obj\$(Platform) $(Configuration)\</IntDir>
-    <OutDir>C:\Personal\ThirdPartySourceRepos\np++\PowerEditor\visual.net\$(Platform)\$(Configuration)\plugins\</OutDir>
-    <OutDir Condition="'$(Platform)'=='Win32'">C:\Personal\ThirdPartySourceRepos\np++\PowerEditor\visual.net\$(Configuration)\plugins\</OutDir>
+  </PropertyGroup>
+  <ImportGroup Condition="Exists('LocalSettings.props')" Label="PropertySheets">
+    <Import Project="LocalSettings.props" />
+  </ImportGroup>
+  <!-- Set the defaults for any paths dependent on $(NPPSourceRoot) that are
+       likely to be set in LocalSettings.props.
+   -->
+  <PropertyGroup Condition="'$(NPPBinRoot)'==''">
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='ANSI Debug|Win32'">$(NPPSourceRoot)\PowerEditor\visual.net\$(Configuration)\</NPPBinRoot>
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|Win32'">$(NPPSourceRoot)\PowerEditor\visual.net\$(Configuration)\</NPPBinRoot>
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='ANSI Release|Win32'">$(NPPSourceRoot)\PowerEditor\bin\</NPPBinRoot>
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='Unicode Release|Win32'">$(NPPSourceRoot)\PowerEditor\bin\</NPPBinRoot>
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='ANSI Debug|x64'">$(NPPSourceRoot)\PowerEditor\visual.net\$(Platform)\$(Configuration)\</NPPBinRoot>
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|x64'">$(NPPSourceRoot)\PowerEditor\visual.net\$(Platform)\$(Configuration)\</NPPBinRoot>
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='ANSI Release|x64'">$(NPPSourceRoot)\PowerEditor\bin64\</NPPBinRoot>
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='Unicode Release|x64'">$(NPPSourceRoot)\PowerEditor\bin64\</NPPBinRoot>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir Condition="'$(OutDir)'==''">$(NPPBinRoot)\plugins\</OutDir>
+    <LocalDebuggerCommand Condition="'$(LocalDebuggerCommand)'==''">$(NPPBinRoot)\notepad++.exe</LocalDebuggerCommand>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
