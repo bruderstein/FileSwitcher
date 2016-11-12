@@ -1,0 +1,151 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="ANSI Debug|Win32">
+      <Configuration>ANSI Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ANSI Debug|x64">
+      <Configuration>ANSI Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ANSI Release|Win32">
+      <Configuration>ANSI Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="ANSI Release|x64">
+      <Configuration>ANSI Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Unicode Debug|Win32">
+      <Configuration>Unicode Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Unicode Debug|x64">
+      <Configuration>Unicode Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Unicode Release|Win32">
+      <Configuration>Unicode Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Unicode Release|x64">
+      <Configuration>Unicode Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{742F7CCE-7020-4946-A59C-DAE3188E4EFC}</ProjectGuid>
+    <RootNamespace>FileSwitcher</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectName>FileSwitcher</ProjectName>
+    <NPPSourceRoot>C:\Personal\ThirdPartySourceRepos\np++\</NPPSourceRoot>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v110</PlatformToolset>
+    <CharacterSet Condition="'$(Configuration)'=='ANSI Debug'">MultiByte</CharacterSet>
+    <CharacterSet Condition="'$(Configuration)'=='ANSI Release'">MultiByte</CharacterSet>
+    <CharacterSet Condition="'$(Configuration)'=='Unicode Debug'">Unicode</CharacterSet>
+    <CharacterSet Condition="'$(Configuration)'=='Unicode Release'">Unicode</CharacterSet>
+    <_ProjectFileVersion>11.0.61030.0</_ProjectFileVersion>
+    <IntDir>obj\$(Platform) $(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ImportGroup Condition="Exists('LocalSettings.props')" Label="PropertySheets">
+    <Import Project="LocalSettings.props" />
+  </ImportGroup>
+  <!-- Set the defaults for any paths dependent on $(NPPSourceRoot) that are
+       likely to be set in LocalSettings.props.
+   -->
+  <PropertyGroup Condition="'$(NPPBinRoot)'==''">
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='ANSI Debug|Win32'">$(NPPSourceRoot)\PowerEditor\visual.net\$(Configuration)\</NPPBinRoot>
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|Win32'">$(NPPSourceRoot)\PowerEditor\visual.net\$(Configuration)\</NPPBinRoot>
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='ANSI Release|Win32'">$(NPPSourceRoot)\PowerEditor\bin\</NPPBinRoot>
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='Unicode Release|Win32'">$(NPPSourceRoot)\PowerEditor\bin\</NPPBinRoot>
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='ANSI Debug|x64'">$(NPPSourceRoot)\PowerEditor\visual.net\$(Platform)\$(Configuration)\</NPPBinRoot>
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='Unicode Debug|x64'">$(NPPSourceRoot)\PowerEditor\visual.net\$(Platform)\$(Configuration)\</NPPBinRoot>
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='ANSI Release|x64'">$(NPPSourceRoot)\PowerEditor\bin64\</NPPBinRoot>
+    <NPPBinRoot Condition="'$(Configuration)|$(Platform)'=='Unicode Release|x64'">$(NPPSourceRoot)\PowerEditor\bin64\</NPPBinRoot>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir Condition="'$(OutDir)'==''">$(NPPBinRoot)\plugins\</OutDir>
+    <LocalDebuggerCommand Condition="'$(LocalDebuggerCommand)'==''">$(NPPBinRoot)\notepad++.exe</LocalDebuggerCommand>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="Debug.props" Condition="'$(Configuration)'=='ANSI Debug'" />
+    <Import Project="Debug.props" Condition="'$(Configuration)'=='Unicode Debug'" />
+    <Import Project="Release.props" Condition="'$(Configuration)'=='ANSI Release'" />
+    <Import Project="Release.props" Condition="'$(Configuration)'=='Unicode Release'" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(VCTargetsPath)Microsoft.CPP.UpgradeFromVC71.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>../../Common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_USRDLL;FileSwitcher_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>precompiledHeaders.h</PrecompiledHeaderFile>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>shlwapi.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\common\StaticDialog.cpp">
+      <PrecompiledHeaderFile>../src/precompiledHeaders.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="..\..\src\Compare.cpp" />
+    <ClCompile Include="..\..\src\EditFile.cpp" />
+    <ClCompile Include="..\..\src\FileListView.cpp" />
+    <ClCompile Include="..\..\src\FileSwitcher.cpp" />
+    <ClCompile Include="..\..\src\Globals.cpp" />
+    <ClCompile Include="..\..\src\precompiledHeaders.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\src\AboutDialog.cpp" />
+    <ClCompile Include="..\..\src\ConfigDialog.cpp" />
+    <ClCompile Include="..\..\src\SwitchDialog.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\common\Notepad_plus_msgs.h" />
+    <ClInclude Include="..\..\common\PluginInterface.h" />
+    <ClInclude Include="..\..\common\Scintilla.h" />
+    <ClInclude Include="..\..\common\StaticDialog.h" />
+    <ClInclude Include="..\..\common\Window.h" />
+    <ClInclude Include="..\..\src\Compare.h" />
+    <ClInclude Include="..\..\src\EditFile.h" />
+    <ClInclude Include="..\..\src\FileListView.h" />
+    <ClInclude Include="..\..\src\FileSwitcher.h" />
+    <ClInclude Include="..\..\src\precompiledHeaders.h" />
+    <ClInclude Include="..\..\src\resource.h" />
+    <ClInclude Include="..\..\src\SearchOptions.h" />
+    <ClInclude Include="..\..\src\AboutDialog.h" />
+    <ClInclude Include="..\..\src\ConfigDialog.h" />
+    <ClInclude Include="..\..\src\SwitchDialog.h" />
+    <ClInclude Include="..\..\thirdPartyLibs\dirent.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\src\FileSwitcherDialogs.rc">
+      <AdditionalIncludeDirectories>../../res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\res\questionMark.bmp" />
+    <Image Include="..\..\res\readonly.ico" />
+    <Image Include="..\..\res\saved.ico" />
+    <Image Include="..\..\res\SortDown.bmp" />
+    <Image Include="..\..\res\SortUp.bmp" />
+    <Image Include="..\..\res\unsaved.ico" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

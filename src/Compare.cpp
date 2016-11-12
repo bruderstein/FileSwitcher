@@ -1,11 +1,9 @@
-#include "stdafx.h"
-
+#include "precompiledHeaders.h"
 #include "Compare.h"
-#include <tchar.h>
 
 LPTSTR _tcsistr(LPCTSTR string, LPCTSTR strCharSet)
 {
-	int nLen = _tcslen(strCharSet);
+	auto nLen = _tcslen(strCharSet);
 
 	while (*string)
 	{

@@ -11,7 +11,7 @@
 #define IDI_UNSAVED                     109
 #define IDI_READONLY                    110
 #define IDI_SAVED                       111
-#define IDC_EDIT1                       1001
+#define IDB_TOOLTIP                     121
 #define IDC_FILEEDIT                    1001
 #define IDC_FILELIST                    1002
 #define IDC_CHECKCASE                   1003
@@ -38,19 +38,28 @@
 #define IDC_CHECKREVERTSORTORDERDURINGTABBING 1018
 #define IDC_CHECKINCLUDEVIEW            1019
 #define IDC_CHECKSEPARATECOLUMNFORVIEW  1020
-#define IDC_CHECKNODIALOGFORCTRLTAB     1021
 #define IDC_CHECKDIALOGFORCTRLTAB       1021
 #define IDC_LABELCTRLTAB                1022
 #define IDC_CHECK1                      1023
 #define IDC_CHECKUSEHOMEFOREDIT         1023
+#define IDC_CHECKWILDCARD               1024
+#define IDC_CHECKCONFIGURESEARCHCONTEXT 1025
+#define IDC_SEARCHCONTEXTPATH           1026
+#define IDC_MAXTRAVERSEFILES            1027
+#define IDC_MAXDISPLAYFILES             1028
+#define IDC_STATICMAXTRAVERSE           1029
+#define IDC_STATICMAXDISPLAY            1030
+#define IDC_TOOLTIPMAXTRAVERSE          1031
+#define IDC_TOOLTIPMAXDISPLAY           1032
+#define IDC_TOOLTIPCONFIGURECONTEXT     1033
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        112
+#define _APS_NEXT_RESOURCE_VALUE        122
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1024
+#define _APS_NEXT_CONTROL_VALUE         1034
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -18,26 +18,28 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #ifndef SWITCH_DIALOG_H
 #define SWITCH_DIALOG_H
-#include <windows.h>
-#include <tchar.h>
+#include "precompiledHeaders.h"
 #include <map>
 #include "StaticDialog.h"
 #include "EditFile.h"
-#include "resource.h" 
+#include "resource.h"
 #include "FileSwitcher.h"
 #include "FileListView.h"
 #include "ConfigDialog.h"
+#include "Globals.h"
+#include <regex>
+
+#ifndef PLUGININTERFACE_H
+#include "PluginInterface.h"
+#endif
 
 class SwitchDialog : public StaticDialog
 {
-
 public:
-	
-	SwitchDialog() : StaticDialog() {};
-    
-	
 
-	void init(HINSTANCE hInst, NppData nppData, struct options_t *options, std::map<int, TCHAR *> *typedForFile, ConfigDialog *configDlg)
+	SwitchDialog() : StaticDialog() {};
+
+	void init(HINSTANCE hInst, NppData nppData, struct options_t *options, std::map<LRESULT, TCHAR *> *typedForFile, ConfigDialog *configDlg)
 	{
 		_nppData = nppData;
 		_configDlg = configDlg;
@@ -45,14 +47,14 @@ public:
 
 		// Flag that the dimensions and position have not been set
 		_dialogX = -1;
-		
+
 		_typedForFile = typedForFile;
 
 		_options = options;
 		_displayingOptionsDialog = FALSE;
-
 	};
 
+	void doDialog(SimpleFileContainer files);
    	void doDialog(EditFileContainer &editFiles, BOOL ignoreCtrlTab, BOOL previousFile);
 	void setWindowPosition(int x, int y, int width, int height);
 	void getWindowPosition(RECT &rc);
@@ -60,13 +62,14 @@ public:
 	void getColumnOrderString(TCHAR *buffer, int bufferLength);
 	void setColumnOrder(TCHAR *columnOrder);
 	TCHAR *getColumnWidths(TCHAR *buffer, int bufferLength);
-	//void setColumnWidths(TCHAR *buffer);
+	BOOL CALLBACK SwitchDialog::run_dlgProc(UINT message, WPARAM wParam, LPARAM lParam);
+	int getNumColumns();
 
-    virtual void destroy() {};
-	
+	/* If we're displaying the options dialog from the switch dialog, hence don't hide the switch dialog */
+	BOOL _displayingOptionsDialog;
+
 protected :
-	virtual BOOL CALLBACK run_dlgProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-	virtual void showAndPositionWindow(void);
+	void showAndPositionWindow(void);
 
 private:
 	/* Handles */
@@ -82,7 +85,7 @@ private:
 
 	/* File/buffer info */
 	EditFileContainer _editFiles;
-	int _nbFiles;
+	size_t _nbFiles;
 
 	/* Rectangles for current size / position */
 	RECT _okButtonRect;
@@ -96,10 +99,6 @@ private:
 	int _dialogWidth, _dialogHeight;
 	int _dialogX, _dialogY;
 
-	/* Flag to indicate that Ctrl-Tab functionality has stopped, as a key has been pressed */
-	BOOL _overrideCtrlTab;
-
-
 	/* Search flags */
 	BOOL _startOnly;
 	BOOL _caseSensitive;
@@ -111,20 +110,23 @@ private:
 	/* If Ctrl-Tab has been activated, and the sort order has been overridden to Index*/
 	BOOL _haveOverriddenSortOrder;
 
-	/* If we're displaying the options dialog from the switch dialog, hence don't hide the switch dialog */
-	BOOL _displayingOptionsDialog;
-
-	/* Record of what was typed in for each file */
-	std::map<int, TCHAR *> *_typedForFile;
+	/* Record of what was typed in for each file and prefill search field when switch dialog prompts */
+	std::map<LRESULT, TCHAR *> *_typedForFile;
 
 	/* Link between BufferID and file index */
 	std::map<int, int> _bufferToIndex;
 
-
-
+	/*******************/
 	/* Private methods */
-    void cleanup(void);
+	/*******************/
+
+	/* This is for searching files when the context (search directory) is configured.	*/
+	void searchFiles(TCHAR* search, SimpleFileContainer files);
+
+	/* This is for searching files when the context is _not_ configured	*/
 	void searchFiles(TCHAR* search, int selectedEditFileView, int selectedEditFileIndex);
+
+	void addListEntry(SimpleFileInfo *file, bool selected);
 	void addListEntry(EditFile *editFile, bool selected);
 	void clearList(void);
 	void moveSelectionUp(BOOL wrap);
@@ -134,26 +136,19 @@ private:
 	void moveSelectionPageDown(void);
 	void moveSelectionPageUp(void);
 	void updateWindowPosition(void);
+	void OpenSimpleFile();
 	void switchToSelectedBuffer(void);
+	void setupColumnWidths(SimpleFileContainer &files);
 	void setupColumnWidths(EditFileContainer &editFiles);
-	
+	tstring initSearchString(tstring str);
+	std::tregex initRegex(tstring str);
+
 	int getCurrentIndex(int currentView);
 	int getCurrentView(void);
 
 	/* Constants */
 	static const int SEARCH_STRING_BUFFER_MAX = 255;
 	static const int COLUMN_PADDING = 30;
-	
-	
-	
-
-	
-    
-		
-
-
-	};
-
-
+};
 
 #endif // SWITCH_DIALOG_H

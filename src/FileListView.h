@@ -1,15 +1,11 @@
 #pragma once
-#include "stdafx.h"
+#include "precompiledHeaders.h"
 #include "EditFile.h"
 #include "FileSwitcher.h"
 #include "Window.h"
 
-#include <windows.h>
-#include <TCHAR.H>
-#include <commctrl.h>
 #include "resource.h"
 #include <shellapi.h>
-
 
 class FileListView
 {
@@ -22,24 +18,29 @@ public:
 	LRESULT notify(WPARAM wParam, LPARAM lParam);
 
 	int getCurrentSelectedIndex(void);
+	SimpleFileInfo* getCurrentSimpleFile(void);
 	EditFile *getCurrentEditFile(void);
-	
+
+	void sortSimpleFileItems(int currentSortOrder);
+	void sortSimpleFileItems();
 	void sortItems();
 	void sortItems(int currentSortOrder);
 	int getCurrentSortOrder(void);
 	void setCurrentView(int currentView);
 
+	static int CALLBACK listViewSimpleFileComparer(void* lParam1, void* lParam2, LPARAM lParamSort);
 	static int CALLBACK listViewComparer(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
 
 	TCHAR *getColumnOrderString(TCHAR *buffer, int bufferSize);
-	TCHAR *getColumnWidths(TCHAR *buffer, int bufferSize);
+	TCHAR *getColumnWidths(TCHAR *buffer, size_t bufferSize);
     void  setColumnWidths(TCHAR *widths);
 	void  setColumnOrder(TCHAR *columnOrder);
 
 	void updateColumns(void);
+	int getColumnSize(void);
 
 private:
-	
+
 	HWND		_hListView;
 	HWND        _hParentWindow;
 	HWND        _hHeader;
@@ -59,4 +60,3 @@ private:
 	void updateHeader(void);
 	void setupListViewHeader(void);
 };
-

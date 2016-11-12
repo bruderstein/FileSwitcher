@@ -1,4 +1,3 @@
-
 #ifndef _SEARCHOPTIONS_H
 #define _SEARCHOPTIONS_H
 
@@ -10,16 +9,15 @@
 #define SEARCHFLAG_INCLUDEFILENAME   8
 #define SEARCHFLAG_INCLUDEINDEX     16
 #define SEARCHFLAG_INCLUDEVIEW      32
-
-#define REVERSE_SORT_ORDER      0x8000
+#define SEARCHFLAG_INCLUDEWILDCARD  64
 
 enum SortOrder
 {
+	NONE			= -2,
 	ALWAYSREMEMBER	= -1,
 	FILENAME		= 0,
 	PATH			= 1,
 	INDEX			= 2
 };
-
 
 #endif

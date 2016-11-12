@@ -1,8 +1,10 @@
+#ifndef _EDITFILE_H
+#define _EDITFILE_H
+
 #pragma once
 #include <map>
-
 #include "SearchOptions.h"
-
+#include "Globals.h"
 
 enum FileStatus
 {
@@ -11,34 +13,26 @@ enum FileStatus
     READONLY
 };
 
-
 class EditFile
 {
-
 public:
     EditFile(void);
-	EditFile(int view, int index, CONST TCHAR *filename, int searchFlags, int bufferID, void* scintillaDoc);
+	EditFile(int view, int index, CONST TCHAR *filename, int searchFlags, uptr_t bufferID);
 	~EditFile(void);
-	
-	
+
 	TCHAR* getFilename();
 	TCHAR* getFullFilename();
 	TCHAR* getPath();
 	TCHAR* getIndexString(BOOL includeView);
 	TCHAR* getViewString();
-	void*  getScintillaDoc();
 	int    getIndex();
 	int    getView();
-	int    getBufferID();
+	uptr_t getBufferID();
 	FileStatus getFileStatus();
-	
+
 	void   setIndex(int view, int index);
 	void   setFileStatus(FileStatus status);
-	void   setScintillaDoc(void* scintillaDoc);
 	void   clearIndexes();
-	
-	
-	
 
 private:
 	TCHAR* _fullFilename;
@@ -47,15 +41,16 @@ private:
 	TCHAR* _filename;
 	TCHAR* _display;
 	FileStatus _fileStatus;
-	
+
 	bool _dataSet;
-	int _bufferID;
+	uptr_t _bufferID;
 	int _view;
 	int _index;
 
 	TCHAR* _indexString;
 	TCHAR* _viewString;
 
-	void* _scintillaDoc;
-
+	bool HasMultipleViews();
 };
+
+#endif
